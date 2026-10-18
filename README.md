@@ -1,90 +1,43 @@
 # TSUKOMI StudyHub
 
-TSUKOMI StudyHub is an exam-focused learning platform for **TSUKOMI PADHAYEGA**. It helps RGPV B.Tech students discover lectures, watch embedded YouTube classes, and access lecture notes after completing the required watch time.
+TSUKOMI StudyHub is an exam-focused learning platform created for **TSUKOMI PADHAYEGA**. It brings RGPV B.Tech lectures, revision material, and study notes into one focused experience for students preparing for university examinations.
 
-Built with Flask and MongoDB, the project includes a public student-facing StudyHub and a protected admin workspace for managing video content.
+## About the project
 
-## Features
+The platform gives students a simple way to discover relevant lectures by year, semester, subject, and unit. Each lecture has its own dedicated page with an embedded YouTube video, learning information, and related content. After students complete the required watch duration, they can open the notes attached to that lecture.
 
-- Public lecture library with YouTube thumbnails
-- Search by lecture title, subject, or unit
-- Filters for year, semester, subject, and unit
-- Pagination for growing content libraries
-- Year → semester → subject course selector
-- Dynamic lecture pages at `/watch/<slug>`
-- Related-lecture recommendations
-- Embedded YouTube player with watch-progress tracking
-- Notes unlocked after the configured watch duration
-- Direct Google Drive notes links after unlock
-- Admin dashboard for adding, editing, publishing, unpublishing, and deleting videos
-- Content and watch analytics dashboard
-- MongoDB-backed videos and analytics events
-- Admin login protections: password hashing support, CSRF protection, rate limiting, session expiry, and safe redirects
-- Search-engine support through `robots.txt` and `sitemap.xml`
+The project also has a protected admin workspace, making it possible to manage the full lecture library without changing website code for every new video. An administrator can add a YouTube link, attach notes, choose academic details, publish content, and review engagement analytics.
 
-## Technology
+## How it helps students
 
-- Python / Flask
-- MongoDB Atlas / PyMongo
-- Jinja templates, HTML, CSS, and JavaScript
-- YouTube IFrame API
+- Keeps exam-focused lecture content in one organized study hub
+- Makes it easier to find content by subject, semester, and unit
+- Supports revision with YouTube lectures and accompanying notes
+- Encourages learners to engage with a lecture before opening its notes
+- Helps students quickly explore related lectures from the same subject
 
-## Run locally
+## How it was built
 
-1. Create and activate a virtual environment.
+TSUKOMI StudyHub was built as a full-stack web application using Python and Flask for the backend, MongoDB for content and analytics storage, and HTML, CSS, JavaScript, and Jinja templates for the user interface. YouTube is integrated through the YouTube IFrame API, while Google Drive links are used to provide lecture notes.
 
-   ```bash
-   python -m venv venv
-   venv\Scripts\activate
-   ```
+The project includes a responsive public StudyHub, search and academic filters, dynamic video pages, a secure admin dashboard, watch-progress handling, and analytics for video activity and notes downloads.
 
-2. Install dependencies.
+## Skills demonstrated
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+Building this project has helped develop practical skills in:
 
-3. Create a `.env` file in the project root. Never commit it.
+- Full-stack web development with Flask
+- Designing responsive, student-focused user interfaces
+- MongoDB data modelling and database integration
+- Authentication, session handling, CSRF protection, and rate limiting
+- CRUD operations for a real content-management workflow
+- Third-party platform integration with YouTube and Google Drive
+- Search, filtering, pagination, analytics, and SEO fundamentals
+- Version control and project documentation with Git and GitHub
 
-   ```env
-   MONGO_URI=your-mongodb-atlas-connection-string
-   DB_NAME=tsukomi_studyhub
-   SECRET_KEY=generate-a-long-random-secret
-   ADMIN_USERNAME=your-admin-username
-   ADMIN_PASSWORD_HASH=your-password-hash
-   REQUIRED_WATCH_SECONDS=40
-   PORT=5000
-   FLASK_DEBUG=1
-   ```
+## Impact
 
-4. Generate a secure admin password hash.
-
-   ```bash
-   python -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('choose-a-long-unique-password'))"
-   ```
-
-5. Start the app.
-
-   ```bash
-   python app.py
-   ```
-
-Open `http://127.0.0.1:5000` for the public site and `http://127.0.0.1:5000/admin/login` for administration.
-
-## Content workflow
-
-1. Sign in to the admin dashboard.
-2. Add a title, YouTube URL, notes/Google Drive URL, year, semester, subject, and unit.
-3. Save as a draft or publish it immediately.
-4. Published lectures appear in the public StudyHub automatically.
-
-## Security notes
-
-- `.env` is ignored by Git and must never be uploaded.
-- Use `ADMIN_PASSWORD_HASH` instead of a plaintext password.
-- Use HTTPS in production and set `SESSION_COOKIE_SECURE=1`.
-- For stronger production administration controls, restrict `/admin` with an IP allowlist, VPN, or Cloudflare Access.
-- Google Drive links are direct links after notes unlock; use signed/protected delivery if stronger note protection is needed.
+TSUKOMI StudyHub turns scattered learning resources into a structured academic platform. It is designed to make exam preparation easier for students while giving the creator a practical system for publishing, organizing, and improving educational content over time.
 
 ## License
 
