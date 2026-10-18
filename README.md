@@ -39,6 +39,20 @@ Building this project has helped develop practical skills in:
 
 TSUKOMI StudyHub turns scattered learning resources into a structured academic platform. It is designed to make exam preparation easier for students while giving the creator a practical system for publishing, organizing, and improving educational content over time.
 
+## Deploy to Vercel
+
+The Flask app runs on Vercel as a Python function. Before deploying:
+
+1. Push this repository to GitHub and import it as a project in Vercel. The included `vercel.json` routes requests to the Flask function and includes the templates and static assets.
+2. Create a MongoDB database (for example, with MongoDB Atlas) and allow connections from your Vercel deployment. Use a database user with a strong password.
+3. In **Vercel → Project Settings → Environment Variables**, set:
+   - `MONGO_URI` — the MongoDB connection string for the database.
+   - `SECRET_KEY` — a long, random value used to sign session cookies. Generate one locally with `python -c "import secrets; print(secrets.token_urlsafe(32))"`.
+4. Optionally set `DB_NAME` (defaults to `tsukomi_studyhub`), `REQUIRED_WATCH_SECONDS` (defaults to `40`), and `SESSION_COOKIE_SECURE` (defaults to enabled on Vercel).
+5. Redeploy after adding or changing environment variables.
+
+Do not commit `.env` or put production secrets in the repository. On the first successful connection, the app creates its MongoDB indexes and imports the bundled initial video records if the videos collection is empty.
+
 ## License
 
 Private project for TSUKOMI PADHAYEGA.

@@ -18,12 +18,17 @@ from werkzeug.security import check_password_hash
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "change-this-in-production")
+secret_key = os.getenv("SECRET_KEY")
+if os.getenv("VERCEL") and not secret_key:
+    raise RuntimeError("Set the SECRET_KEY environment variable in your Vercel project.")
+app.secret_key = secret_key or secrets.token_hex(32)
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
-    # Set SESSION_COOKIE_SECURE=1 once the site is served over HTTPS.
-    SESSION_COOKIE_SECURE=os.getenv("SESSION_COOKIE_SECURE", "0") == "1",
+    SESSION_COOKIE_SECURE=os.getenv(
+        "SESSION_COOKIE_SECURE",
+        "1" if os.getenv("VERCEL") else "0",
+    ) == "1",
     PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),
 )
 
