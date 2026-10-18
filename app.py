@@ -17,7 +17,7 @@ from werkzeug.security import check_password_hash
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="public/static")
 secret_key = os.getenv("SECRET_KEY")
 if os.getenv("VERCEL") and not secret_key:
     raise RuntimeError("Set the SECRET_KEY environment variable in your Vercel project.")
