@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ code }} · TSUKOMI{% endblock %}
+{% block content %}
+<div class="auth-card">
+  <div class="eyebrow">TSUKOMI StudyHub</div>
+  <h1>{{ code }}</h1>
+  <p class="muted">{{ message }}</p>
+  <br>
+  <a class="button" href="{{ url_for('home') }}">Back Home</a>
+</div>
+{% endblock %}

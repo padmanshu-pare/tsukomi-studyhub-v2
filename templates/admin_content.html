@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Content Library · TSUKOMI Admin</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+
+    <style>
+        /* =========================================================
+           CONTENT LIBRARY
+           ========================================================= */
+
+        .library-page {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+
+        /* =========================================================
+           HEADER
+           ========================================================= */
+
+        .library-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 30px;
+
+            margin-bottom: 28px;
+        }
+
+        .library-eyebrow {
+            margin-bottom: 8px;
+
+            color: var(--admin-pink);
+
+            font-size: 11px;
+            font-weight: 800;
+
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .library-title {
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: clamp(32px, 4vw, 46px);
+            line-height: 1;
+
+            letter-spacing: -0.045em;
+        }
+
+        .library-subtitle {
+            margin: 10px 0 0;
+
+            color: var(--admin-muted);
+
+            font-size: 13px;
+        }
+
+        .library-add-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            min-height: 44px;
+
+            padding: 0 18px;
+
+            border-radius: 10px;
+
+            background:
+                linear-gradient(135deg,
+                    var(--admin-pink),
+                    #ff4f94);
+
+            color: #ffffff;
+
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 800;
+
+            box-shadow:
+                0 10px 30px rgba(255, 57, 125, 0.18);
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+        .library-add-button:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 14px 35px rgba(255, 57, 125, 0.25);
+        }
+
+
+        /* =========================================================
+           STAT STRIP
+           ========================================================= */
+
+        .library-stats {
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, minmax(0, 1fr));
+
+            gap: 12px;
+
+            margin-bottom: 20px;
+        }
+
+        .library-stat {
+            padding: 17px 18px;
+
+            border: 1px solid var(--admin-border);
+            border-radius: 12px;
+
+            background:
+                linear-gradient(145deg,
+                    rgba(18, 25, 39, 0.95),
+                    rgba(9, 13, 22, 0.95));
+        }
+
+        .library-stat-label {
+            color: #6f7d92;
+
+            font-size: 10px;
+            font-weight: 700;
+
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .library-stat-value {
+            margin-top: 6px;
+
+            color: #ffffff;
+
+            font-size: 24px;
+            font-weight: 850;
+
+            line-height: 1;
+        }
+
+        .library-stat-value.published {
+            color: var(--admin-green);
+        }
+
+        .library-stat-value.draft {
+            color: var(--admin-yellow);
+        }
+
+        .library-stat-value.disabled {
+            color: var(--admin-red);
+        }
+
+
+        /* =========================================================
+           TABS
+           ========================================================= */
+
+        .library-tabs {
+            display: flex;
+            align-items: center;
+
+            gap: 24px;
+
+            margin-bottom: 16px;
+
+            border-bottom: 1px solid var(--admin-border);
+        }
+
+        .library-tab {
+            position: relative;
+
+            padding: 0 2px 13px;
+
+            border: 0;
+
+            background: transparent;
+
+            color: #748197;
+
+            font: inherit;
+            font-size: 12px;
+            font-weight: 750;
+
+            cursor: pointer;
+        }
+
+        .library-tab:hover {
+            color: #ffffff;
+        }
+
+        .library-tab.active {
+            color: #ffffff;
+        }
+
+        .library-tab.active::after {
+            content: "";
+
+            position: absolute;
+
+            left: 0;
+            right: 0;
+            bottom: -1px;
+
+            height: 2px;
+
+            background: var(--admin-pink);
+        }
+
+        .library-tab-count {
+            margin-left: 4px;
+
+            color: #59667b;
+
+            font-size: 10px;
+        }
+
+
+        /* =========================================================
+           FILTER BAR
+           ========================================================= */
+
+        .library-filter-bar {
+            display: grid;
+
+            grid-template-columns:
+                minmax(260px, 1.7fr) repeat(4, minmax(130px, 1fr));
+
+            gap: 9px;
+
+            margin-bottom: 18px;
+        }
+
+        .library-search,
+        .library-select {
+            width: 100%;
+            height: 43px;
+
+            box-sizing: border-box;
+
+            border: 1px solid var(--admin-border);
+            border-radius: 9px;
+
+            outline: none;
+
+            background: #080d16;
+            color: #ffffff;
+
+            font: inherit;
+            font-size: 11px;
+        }
+
+        .library-search {
+            padding: 0 14px;
+        }
+
+        .library-select {
+            padding: 0 11px;
+        }
+
+        .library-search::placeholder {
+            color: #4f5c71;
+        }
+
+        .library-search:focus,
+        .library-select:focus {
+            border-color: var(--admin-pink);
+
+            box-shadow:
+                0 0 0 3px rgba(255, 57, 125, 0.08);
+        }
+
+
+        /* =========================================================
+           LIBRARY PANEL
+           ========================================================= */
+
+        .library-panel {
+            width: 100%;
+
+            overflow: hidden;
+
+            border: 1px solid var(--admin-border);
+            border-radius: 14px;
+
+            background:
+                linear-gradient(145deg,
+                    rgba(17, 24, 38, 0.98),
+                    rgba(9, 13, 22, 0.98));
+        }
+
+
+        /* =========================================================
+           TABLE HEADER
+           ========================================================= */
+
+        .library-table-head {
+            display: grid;
+
+            grid-template-columns:
+                110px minmax(250px, 1.7fr) minmax(170px, 1fr) 90px 110px 150px;
+
+            gap: 15px;
+
+            align-items: center;
+
+            padding: 12px 18px;
+
+            border-bottom: 1px solid var(--admin-border);
+
+            color: #59657a;
+
+            font-size: 9px;
+            font-weight: 800;
+
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+        }
+
+
+        /* =========================================================
+           VIDEO ROW
+           ========================================================= */
+
+        .library-row {
+            display: grid;
+
+            grid-template-columns:
+                110px minmax(250px, 1.7fr) minmax(170px, 1fr) 90px 110px 150px;
+
+            gap: 15px;
+
+            align-items: center;
+
+            min-width: 0;
+
+            padding: 16px 18px;
+
+            border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+
+            transition:
+                background 0.2s ease;
+        }
+
+        .library-row:last-child {
+            border-bottom: 0;
+        }
+
+        .library-row:hover {
+            background: rgba(255, 255, 255, 0.018);
+        }
+
+
+        /* =========================================================
+           THUMBNAIL
+           ========================================================= */
+
+        .library-thumb {
+            position: relative;
+
+            width: 110px;
+            height: 62px;
+
+            overflow: hidden;
+
+            border-radius: 8px;
+
+            background: #080d16;
+        }
+
+        .library-thumb img {
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+
+            display: block;
+        }
+
+        .library-play {
+            position: absolute;
+
+            left: 50%;
+            top: 50%;
+
+            transform: translate(-50%, -50%);
+
+            width: 28px;
+            height: 28px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: rgba(0, 0, 0, 0.72);
+
+            color: #ffffff;
+
+            font-size: 10px;
+        }
+
+
+        /* =========================================================
+           TITLE
+           ========================================================= */
+
+        .library-title-cell {
+            min-width: 0;
+        }
+
+        .library-video-title {
+            margin: 0;
+
+            overflow: hidden;
+
+            color: #ffffff;
+
+            font-size: 12px;
+            font-weight: 750;
+
+            line-height: 1.4;
+
+            display: -webkit-box;
+
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+        }
+
+        .library-video-slug {
+            margin-top: 5px;
+
+            overflow: hidden;
+
+            color: #536077;
+
+            font-size: 9px;
+
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+
+        /* =========================================================
+           ORGANIZATION
+           ========================================================= */
+
+        .library-subject {
+            overflow: hidden;
+
+            color: #c1c9d7;
+
+            font-size: 10px;
+            font-weight: 700;
+
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .library-location {
+            margin-top: 5px;
+
+            color: #657289;
+
+            font-size: 9px;
+        }
+
+
+        /* =========================================================
+           UNIT
+           ========================================================= */
+
+        .library-unit {
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 6px 9px;
+
+            border-radius: 7px;
+
+            background: rgba(255, 255, 255, 0.045);
+
+            color: #aeb8c8;
+
+            font-size: 9px;
+            font-weight: 750;
+        }
+
+
+        /* =========================================================
+           STATUS
+           ========================================================= */
+
+        .library-status {
+            display: inline-flex;
+
+            align-items: center;
+            gap: 6px;
+
+            width: fit-content;
+
+            padding: 6px 9px;
+
+            border-radius: 999px;
+
+            font-size: 9px;
+            font-weight: 800;
+        }
+
+        .library-status.published {
+            color: var(--admin-green);
+
+            background:
+                rgba(54, 217, 138, 0.10);
+        }
+
+        .library-status.draft {
+            color: var(--admin-yellow);
+
+            background:
+                rgba(244, 189, 79, 0.10);
+        }
+
+        .library-status.disabled {
+            color: var(--admin-red);
+
+            background:
+                rgba(255, 92, 104, 0.10);
+        }
+
+
+        /* =========================================================
+           ACTIONS
+           ========================================================= */
+
+        .library-actions {
+            display: flex;
+
+            align-items: center;
+
+            gap: 6px;
+
+            min-width: 0;
+        }
+
+        .library-action-form {
+            margin: 0;
+            padding: 0;
+        }
+
+        .library-action {
+            width: 32px;
+            height: 32px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            box-sizing: border-box;
+
+            border: 1px solid var(--admin-border);
+            border-radius: 7px;
+
+            background: #111827;
+            color: #aeb8c8;
+
+            text-decoration: none;
+
+            cursor: pointer;
+
+            font: inherit;
+            font-size: 11px;
+
+            transition:
+                color 0.2s ease,
+                border-color 0.2s ease,
+                background 0.2s ease;
+        }
+
+        .library-action:hover {
+            color: #ffffff;
+
+            border-color: #3b465b;
+
+            background: #151d2b;
+        }
+
+        .library-action.danger:hover {
+            color: var(--admin-red);
+
+            border-color:
+                rgba(255, 92, 104, 0.45);
+        }
+
+
+        /* =========================================================
+           FOOTER
+           ========================================================= */
+
+        .library-footer {
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 14px 18px;
+
+            border-top: 1px solid var(--admin-border);
+
+            color: #59657a;
+
+            font-size: 10px;
+        }
+
+
+        /* =========================================================
+           EMPTY STATE
+           ========================================================= */
+
+        .library-empty {
+            display: none;
+
+            padding: 75px 20px;
+
+            text-align: center;
+        }
+
+        .library-empty.show {
+            display: block;
+        }
+
+        .library-empty-icon {
+            margin-bottom: 12px;
+
+            font-size: 34px;
+
+            opacity: 0.45;
+        }
+
+        .library-empty h3 {
+            margin: 0 0 6px;
+
+            color: #ffffff;
+
+            font-size: 16px;
+        }
+
+        .library-empty p {
+            margin: 0;
+
+            color: #68758a;
+
+            font-size: 11px;
+        }
+
+
+        /* =========================================================
+           RESPONSIVE
+           ========================================================= */
+
+        @media (max-width: 1200px) {
+
+            .library-filter-bar {
+                grid-template-columns:
+                    minmax(220px, 1fr) repeat(2, 150px);
+            }
+
+            .library-table-head {
+                display: none;
+            }
+
+            .library-row {
+                grid-template-columns:
+                    100px minmax(0, 1fr) auto;
+
+                gap: 14px;
+            }
+
+            .library-organization,
+            .library-unit-cell,
+            .library-status-cell {
+                display: none;
+            }
+
+            .library-actions {
+                grid-column: 3;
+                grid-row: 1;
+            }
+        }
+
+
+        @media (max-width: 700px) {
+
+            .library-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .library-stats {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+            .library-filter-bar {
+                grid-template-columns: 1fr;
+            }
+
+            .library-row {
+                grid-template-columns:
+                    85px minmax(0, 1fr);
+
+                gap: 11px;
+            }
+
+            .library-thumb {
+                width: 85px;
+                height: 48px;
+            }
+
+            .library-actions {
+                grid-column: 2;
+            }
+
+            .library-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+
+
+<body>
+
+    <div class="admin-page">
+
+
+        <!-- =========================================================
+         SIDEBAR
+         ========================================================= -->
+
+        <aside class="admin-sidebar">
+
+            <div>
+
+                <div class="admin-brand">
+
+                    <div class="admin-brand-icon">
+                        ✦
+                    </div>
+
+                    <div class="admin-brand-text">
+
+                        <strong>
+                            TSUKOMI
+                        </strong>
+
+                        <span>
+                            PADHAYEGA
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <nav class="admin-nav">
+
+                    <div class="admin-nav-title">
+                        MAIN
+                    </div>
+
+                    <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link">
+
+                        <span class="admin-nav-icon">
+                            ⌂
+                        </span>
+
+                        <span class="admin-nav-text">
+                            Dashboard
+                        </span>
+
+                    </a>
+
+
+                    <div class="admin-nav-title">
+                        CONTENT
+                    </div>
+
+                    <a href="{{ url_for('admin_content') }}" class="admin-nav-link active">
+
+                        <span class="admin-nav-icon">
+                            ▣
+                        </span>
+
+                        <span class="admin-nav-text">
+                            Content Library
+                        </span>
+
+                    </a>
+
+                    <a href="{{ url_for('admin_dashboard') }}#publish" class="admin-nav-link">
+
+                        <span class="admin-nav-icon">
+                            ＋
+                        </span>
+
+                        <span class="admin-nav-text">
+                            Publish Video
+                        </span>
+
+                    </a>
+
+
+                    <div class="admin-nav-title">
+                        SYSTEM
+                    </div>
+
+                    <a href="{{ url_for('home') }}" target="_blank" class="admin-nav-link">
+
+                        <span class="admin-nav-icon">
+                            ↗
+                        </span>
+
+                        <span class="admin-nav-text">
+                            View StudyHub
+                        </span>
+
+                    </a>
+
+                    <a href="{{ url_for('admin_logout') }}" class="admin-nav-link">
+
+                        <span class="admin-nav-icon">
+                            ⇥
+                        </span>
+
+                        <span class="admin-nav-text">
+                            Logout
+                        </span>
+
+                    </a>
+
+                </nav>
+
+            </div>
+
+
+            <div class="admin-sidebar-bottom">
+
+                <div class="admin-user">
+
+                    <div class="admin-avatar">
+                        A
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Administrator
+                        </strong>
+
+                        <span>
+                            StudyHub Admin
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <!-- =========================================================
+         MAIN
+         ========================================================= -->
+
+        <main class="admin-main">
+
+            <div class="admin-container library-page">
+
+
+                <!-- HEADER -->
+
+                <header class="library-header">
+
+                    <div>
+
+                        <div class="library-eyebrow">
+                            CONTENT MANAGEMENT
+                        </div>
+
+                        <h1 class="library-title">
+                            Content Library
+                        </h1>
+
+                        <p class="library-subtitle">
+                            Manage, organize and control all your StudyHub lectures.
+                        </p>
+
+                    </div>
+
+
+                    <a href="{{ url_for('admin_dashboard') }}#publish" class="library-add-button">
+
+                        ＋ Add Video
+
+                    </a>
+
+                </header>
+
+
+                <!-- =================================================
+                 STATS
+                 ================================================= -->
+
+                {% set total = videos|length %}
+
+                {% set published_count = videos
+                |selectattr("published", "equalto", true)
+                |list
+                |length
+                %}
+
+                {% set draft_count = videos
+                |selectattr("status", "equalto", "draft")
+                |list
+                |length
+                %}
+
+                {% set disabled_count = total - published_count - draft_count %}
+
+
+                <section class="library-stats">
+
+                    <div class="library-stat">
+
+                        <div class="library-stat-label">
+                            Total Videos
+                        </div>
+
+                        <div class="library-stat-value">
+                            {{ total }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="library-stat">
+
+                        <div class="library-stat-label">
+                            Published
+                        </div>
+
+                        <div class="library-stat-value published">
+                            {{ published_count }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="library-stat">
+
+                        <div class="library-stat-label">
+                            Drafts
+                        </div>
+
+                        <div class="library-stat-value draft">
+                            {{ draft_count }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="library-stat">
+
+                        <div class="library-stat-label">
+                            Disabled
+                        </div>
+
+                        <div class="library-stat-value disabled">
+                            {{ disabled_count }}
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =================================================
+                 TABS
+                 ================================================= -->
+
+                <div class="library-tabs">
+
+                    <button type="button" class="library-tab active" data-status="all">
+                        All
+                        <span class="library-tab-count">
+                            {{ total }}
+                        </span>
+                    </button>
+
+
+                    <button type="button" class="library-tab" data-status="published">
+                        Published
+                        <span class="library-tab-count">
+                            {{ published_count }}
+                        </span>
+                    </button>
+
+
+                    <button type="button" class="library-tab" data-status="draft">
+                        Drafts
+                        <span class="library-tab-count">
+                            {{ draft_count }}
+                        </span>
+                    </button>
+
+
+                    <button type="button" class="library-tab" data-status="disabled">
+                        Disabled
+                        <span class="library-tab-count">
+                            {{ disabled_count }}
+                        </span>
+                    </button>
+
+                </div>
+
+
+                <!-- =================================================
+                 FILTERS
+                 ================================================= -->
+
+                <div class="library-filter-bar">
+
+                    <input id="library-search" class="library-search" type="search"
+                        placeholder="🔍  Search videos, subjects or slugs...">
+
+
+                    <select id="library-year" class="library-select">
+                        <option value="">
+                            All Years
+                        </option>
+                    </select>
+
+
+                    <select id="library-semester" class="library-select">
+                        <option value="">
+                            All Semesters
+                        </option>
+                    </select>
+
+
+                    <select id="library-subject" class="library-select">
+                        <option value="">
+                            All Subjects
+                        </option>
+                    </select>
+
+
+                    <select id="library-unit" class="library-select">
+                        <option value="">
+                            All Units
+                        </option>
+                    </select>
+
+                </div>
+
+
+                <!-- =================================================
+                 CONTENT TABLE
+                 ================================================= -->
+
+                <section class="library-panel">
+
+
+                    <!-- TABLE HEADER -->
+
+                    <div class="library-table-head">
+
+                        <div>
+                            VIDEO
+                        </div>
+
+                        <div>
+                            TITLE
+                        </div>
+
+                        <div>
+                            ORGANIZATION
+                        </div>
+
+                        <div>
+                            UNIT
+                        </div>
+
+                        <div>
+                            STATUS
+                        </div>
+
+                        <div>
+                            ACTIONS
+                        </div>
+
+                    </div>
+
+
+                    <!-- VIDEO LIST -->
+
+                    <div id="library-list">
+
+
+                        {% for video in videos %}
+
+
+                        {% if video.published %}
+
+                        {% set video_status = "published" %}
+
+                        {% elif video.status == "draft" %}
+
+                        {% set video_status = "draft" %}
+
+                        {% else %}
+
+                        {% set video_status = "disabled" %}
+
+                        {% endif %}
+
+
+                        <article class="library-row" data-status="{{ video_status }}" data-year="{{ video.year or '' }}"
+                            data-semester="{{ video.semester or '' }}" data-subject="{{ video.subject or '' }}"
+                            data-unit="{{ video.unit or '' }}" data-search="
+                            {{
+                                (
+                                    (video.title or '') ~ ' ' ~
+                                    (video.subject or '') ~ ' ' ~
+                                    (video.slug or '')
+                                ) | lower
+                            }}
+                        ">
+
+
+                            <!-- THUMBNAIL -->
+
+                            <div class="library-thumb">
+
+                                {% if video.youtube_id %}
+
+                                <img src="https://img.youtube.com/vi/{{ video.youtube_id }}/hqdefault.jpg"
+                                    alt="{{ video.title }}" loading="lazy">
+
+                                <span class="library-play">
+                                    ▶
+                                </span>
+
+                                {% else %}
+
+                                <span class="library-play">
+                                    🎬
+                                </span>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- TITLE -->
+
+                            <div class="library-title-cell">
+
+                                <h3 class="library-video-title">
+                                    {{ video.title or "Untitled Lecture" }}
+                                </h3>
+
+                                <div class="library-video-slug">
+                                    /watch/{{ video.slug or "no-slug" }}
+                                </div>
+
+                            </div>
+
+
+                            <!-- ORGANIZATION -->
+
+                            <div class="library-organization">
+
+                                <div class="library-subject">
+
+                                    {{ video.subject or "No subject" }}
+
+                                </div>
+
+                                <div class="library-location">
+
+                                    Year {{ video.year or "—" }}
+                                    ·
+                                    Semester {{ video.semester or "—" }}
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- UNIT -->
+
+                            <div class="library-unit-cell">
+
+                                {% if video.unit %}
+
+                                <span class="library-unit">
+                                    Unit {{ video.unit }}
+                                </span>
+
+                                {% else %}
+
+                                <span style="color:#59657a;">
+                                    —
+                                </span>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- STATUS -->
+
+                            <div class="library-status-cell">
+
+                                {% if video_status == "published" %}
+
+                                <span class="library-status published">
+                                    ● Published
+                                </span>
+
+                                {% elif video_status == "draft" %}
+
+                                <span class="library-status draft">
+                                    ● Draft
+                                </span>
+
+                                {% else %}
+
+                                <span class="library-status disabled">
+                                    ● Disabled
+                                </span>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- ACTIONS -->
+
+                            <div class="library-actions">
+
+
+                                <!-- PREVIEW -->
+
+                                <a href="{{ url_for('watch', slug=video.slug) }}" target="_blank" class="library-action"
+                                    title="Preview">
+                                    👁
+                                </a>
+
+
+                                <!-- EDIT -->
+
+                                <a href="{{ url_for('edit_video', video_id=video._id) }}" class="library-action"
+                                    title="Edit">
+                                    ✏
+                                </a>
+
+
+                                <!-- TOGGLE -->
+
+                                <form method="post" action="{{ url_for('toggle_video', video_id=video._id) }}"
+                                    class="library-action-form">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                                    <button type="submit" class="library-action"
+                                        title="{% if video.published %}Disable{% else %}Publish{% endif %}">
+
+                                        {% if video.published %}
+                                        🔒
+                                        {% else %}
+                                        🟢
+                                        {% endif %}
+
+                                    </button>
+
+                                </form>
+
+
+                                <!-- DELETE -->
+
+                                <form method="post" action="{{ url_for('delete_video', video_id=video._id) }}"
+                                    class="library-action-form"
+                                    onsubmit="return confirm('Delete this video permanently?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                                    <button type="submit" class="library-action danger" title="Delete">
+                                        🗑
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+
+                        </article>
+
+
+                        {% endfor %}
+
+
+                        <!-- EMPTY -->
+
+                        <div id="library-empty" class="library-empty">
+
+                            <div class="library-empty-icon">
+                                📚
+                            </div>
+
+                            <h3>
+                                No videos found
+                            </h3>
+
+                            <p>
+                                Try changing your filters or search query.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- FOOTER -->
+
+                    <div class="library-footer">
+
+                        <span id="library-result">
+                            Showing {{ total }} videos
+                        </span>
+
+                        <span>
+                            TSUKOMI StudyHub · Content Manager
+                        </span>
+
+                    </div>
+
+                </section>
+
+
+            </div>
+
+        </main>
+
+    </div>
+
+
+    <!-- =============================================================
+     FILTER JAVASCRIPT
+     ============================================================= -->
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const search = document.getElementById("library-search");
+            const yearFilter = document.getElementById("library-year");
+            const semesterFilter = document.getElementById("library-semester");
+            const subjectFilter = document.getElementById("library-subject");
+            const unitFilter = document.getElementById("library-unit");
+
+            const result = document.getElementById("library-result");
+            const empty = document.getElementById("library-empty");
+
+            const rows = Array.from(
+                document.querySelectorAll(".library-row")
+            );
+
+            const tabs = document.querySelectorAll(".library-tab");
+
+            let activeStatus = "all";
+
+
+            /* =========================================================
+               CURRICULUM
+               ========================================================= */
+
+            const curriculum = {
+
+                1: {
+                    1: [
+                        "Engineering Chemistry",
+                        "Basic Electrical & Electronics Engineering",
+                        "Mathematics-I",
+                        "Engineering Graphics",
+                        "English"
+                    ],
+
+                    2: [
+                        "Engineering Physics",
+                        "Mathematics-II",
+                        "Basic Mechanical Engineering",
+                        "Basic Civil Engineering & Engineering Mechanics",
+                        "Basic Computer Engineering",
+                        "Language Lab & Seminars"
+                    ]
+                },
+
+                2: {
+                    3: [
+                        "Subject 1",
+                        "Subject 2",
+                        "Subject 3",
+                        "Subject 4",
+                        "Subject 5",
+                        "Subject 6"
+                    ],
+
+                    4: [
+                        "Mathematics-III",
+                        "Analysis & Design of Algorithms",
+                        "Software Engineering",
+                        "Computer Organization & Architecture",
+                        "Operating Systems",
+                        "Programming Practices"
+                    ]
+                },
+
+                3: {
+                    5: [
+                        "Subject 1",
+                        "Subject 2",
+                        "Subject 3",
+                        "Subject 4",
+                        "Subject 5",
+                        "Subject 6"
+                    ],
+
+                    6: [
+                        "Subject 1",
+                        "Subject 2",
+                        "Subject 3",
+                        "Subject 4",
+                        "Subject 5",
+                        "Subject 6"
+                    ]
+                },
+
+                4: {
+                    7: [
+                        "Subject 1",
+                        "Subject 2",
+                        "Subject 3",
+                        "Subject 4",
+                        "Subject 5",
+                        "Subject 6"
+                    ],
+
+                    8: [
+                        "Subject 1",
+                        "Subject 2",
+                        "Subject 3",
+                        "Subject 4",
+                        "Subject 5",
+                        "Subject 6"
+                    ]
+                }
+
+            };
+
+
+            /* =========================================================
+               HELPER
+               ========================================================= */
+
+            function addOption(select, value, text) {
+
+                const option = document.createElement("option");
+
+                option.value = value;
+                option.textContent = text;
+
+                select.appendChild(option);
+            }
+
+
+            function getOrdinal(number) {
+
+                if (number === 1) return "1st";
+                if (number === 2) return "2nd";
+                if (number === 3) return "3rd";
+
+                return number + "th";
+            }
+
+
+            /* =========================================================
+               POPULATE YEARS
+               ========================================================= */
+
+            function populateYears() {
+
+                yearFilter.innerHTML = "";
+
+                addOption(
+                    yearFilter,
+                    "",
+                    "All Years"
+                );
+
+                for (let year = 1; year <= 4; year++) {
+
+                    addOption(
+                        yearFilter,
+                        String(year),
+                        `${getOrdinal(year)} Year`
+                    );
+
+                }
+
+            }
+
+
+            /* =========================================================
+               POPULATE SEMESTERS
+               ========================================================= */
+
+            function populateSemesters() {
+
+                const selectedYear =
+                    yearFilter.value;
+
+                semesterFilter.innerHTML = "";
+
+                addOption(
+                    semesterFilter,
+                    "",
+                    "All Semesters"
+                );
+
+
+                if (selectedYear) {
+
+                    const semesters =
+                        curriculum[selectedYear] || {};
+
+
+                    Object.keys(semesters)
+                        .sort(
+                            (a, b) =>
+                                Number(a) - Number(b)
+                        )
+                        .forEach(function (semester) {
+
+                            addOption(
+                                semesterFilter,
+                                semester,
+                                `${getOrdinal(Number(semester))} Semester`
+                            );
+
+                        });
+
+                } else {
+
+                    for (
+                        let semester = 1;
+                        semester <= 8;
+                        semester++
+                    ) {
+
+                        addOption(
+                            semesterFilter,
+                            String(semester),
+                            `${getOrdinal(semester)} Semester`
+                        );
+
+                    }
+
+                }
+
+            }
+
+
+            /* =========================================================
+               POPULATE SUBJECTS
+               ========================================================= */
+
+            function populateSubjects() {
+
+                const selectedYear =
+                    yearFilter.value;
+
+                const selectedSemester =
+                    semesterFilter.value;
+
+                subjectFilter.innerHTML = "";
+
+                addOption(
+                    subjectFilter,
+                    "",
+                    "All Subjects"
+                );
+
+
+                const subjects = new Set();
+
+
+                if (
+                    selectedYear &&
+                    selectedSemester
+                ) {
+
+                    const list =
+                        curriculum[selectedYear]?.[
+                        selectedSemester
+                        ] || [];
+
+
+                    list.forEach(function (subject) {
+
+                        subjects.add(subject);
+
+                    });
+
+                }
+
+                else if (selectedYear) {
+
+                    const semesters =
+                        curriculum[selectedYear] || {};
+
+
+                    Object.values(semesters)
+                        .forEach(function (subjectList) {
+
+                            subjectList.forEach(function (subject) {
+
+                                subjects.add(subject);
+
+                            });
+
+                        });
+
+                }
+
+                else {
+
+                    Object.values(curriculum)
+                        .forEach(function (year) {
+
+                            Object.values(year)
+                                .forEach(function (subjectList) {
+
+                                    subjectList.forEach(
+                                        function (subject) {
+
+                                            subjects.add(subject);
+
+                                        }
+                                    );
+
+                                });
+
+                        });
+
+                }
+
+
+                Array.from(subjects)
+                    .sort(
+                        (a, b) =>
+                            a.localeCompare(b)
+                    )
+                    .forEach(function (subject) {
+
+                        addOption(
+                            subjectFilter,
+                            subject,
+                            subject
+                        );
+
+                    });
+
+            }
+
+
+            /* =========================================================
+               POPULATE UNITS
+               ========================================================= */
+
+            function populateUnits() {
+
+                unitFilter.innerHTML = "";
+
+                addOption(
+                    unitFilter,
+                    "",
+                    "All Units"
+                );
+
+
+                for (
+                    let unit = 1;
+                    unit <= 5;
+                    unit++
+                ) {
+
+                    addOption(
+                        unitFilter,
+                        String(unit),
+                        `Unit ${unit}`
+                    );
+
+                }
+
+
+                /*
+                 * Optional special value.
+                 * Some of your existing videos use "ALL".
+                 */
+
+                addOption(
+                    unitFilter,
+                    "ALL",
+                    "All Units / Complete"
+                );
+
+            }
+
+
+            /* =========================================================
+               REFRESH FILTERS
+               ========================================================= */
+
+            function refreshFilters() {
+
+                const previousSemester =
+                    semesterFilter.value;
+
+                const previousSubject =
+                    subjectFilter.value;
+
+                populateSemesters();
+
+                if (
+                    Array.from(
+                        semesterFilter.options
+                    ).some(
+                        option =>
+                            option.value === previousSemester
+                    )
+                ) {
+
+                    semesterFilter.value =
+                        previousSemester;
+
+                }
+
+
+                populateSubjects();
+
+
+                if (
+                    Array.from(
+                        subjectFilter.options
+                    ).some(
+                        option =>
+                            option.value === previousSubject
+                    )
+                ) {
+
+                    subjectFilter.value =
+                        previousSubject;
+
+                }
+
+            }
+
+
+            /* =========================================================
+               FILTER VIDEOS
+               ========================================================= */
+
+            function applyFilters() {
+
+                const query =
+                    (search?.value || "")
+                        .trim()
+                        .toLowerCase();
+
+
+                const year =
+                    yearFilter.value;
+
+                const semester =
+                    semesterFilter.value;
+
+                const subject =
+                    subjectFilter.value;
+
+                const unit =
+                    unitFilter.value;
+
+
+                let visible = 0;
+
+
+                rows.forEach(function (row) {
+
+                    const rowSearch =
+                        (
+                            row.dataset.search || ""
+                        ).toLowerCase();
+
+
+                    const rowYear =
+                        String(
+                            row.dataset.year || ""
+                        );
+
+
+                    const rowSemester =
+                        String(
+                            row.dataset.semester || ""
+                        );
+
+
+                    const rowSubject =
+                        (
+                            row.dataset.subject || ""
+                        ).trim();
+
+
+                    const rowUnit =
+                        String(
+                            row.dataset.unit || ""
+                        );
+
+
+                    const matchesSearch =
+                        !query ||
+                        rowSearch.includes(query);
+
+
+                    const matchesYear =
+                        !year ||
+                        rowYear === year;
+
+
+                    const matchesSemester =
+                        !semester ||
+                        rowSemester === semester;
+
+
+                    const matchesSubject =
+                        !subject ||
+                        rowSubject === subject;
+
+
+                    const matchesUnit =
+                        !unit ||
+                        rowUnit === unit;
+
+
+                    const matchesStatus =
+                        activeStatus === "all" ||
+                        row.dataset.status === activeStatus;
+
+
+                    const show =
+                        matchesSearch &&
+                        matchesYear &&
+                        matchesSemester &&
+                        matchesSubject &&
+                        matchesUnit &&
+                        matchesStatus;
+
+
+                    row.style.display =
+                        show ? "grid" : "none";
+
+
+                    if (show) {
+                        visible++;
+                    }
+
+                });
+
+
+                if (empty) {
+
+                    empty.classList.toggle(
+                        "show",
+                        visible === 0
+                    );
+
+                }
+
+
+                if (result) {
+
+                    result.textContent =
+                        `Showing ${visible} of ${rows.length} videos`;
+
+                }
+
+            }
+
+
+            /* =========================================================
+               STATUS TABS
+               ========================================================= */
+
+            tabs.forEach(function (tab) {
+
+                tab.addEventListener(
+                    "click",
+                    function () {
+
+                        tabs.forEach(function (item) {
+
+                            item.classList.remove(
+                                "active"
+                            );
+
+                        });
+
+
+                        tab.classList.add(
+                            "active"
+                        );
+
+
+                        activeStatus =
+                            tab.dataset.status || "all";
+
+
+                        applyFilters();
+
+                    }
+                );
+
+            });
+
+
+            /* =========================================================
+               YEAR CHANGE
+               ========================================================= */
+
+            yearFilter.addEventListener(
+                "change",
+                function () {
+
+                    /*
+                     * Changing year can change available
+                     * semesters and subjects.
+                     */
+
+                    semesterFilter.value = "";
+                    subjectFilter.value = "";
+
+                    refreshFilters();
+
+                    applyFilters();
+
+                }
+            );
+
+
+            /* =========================================================
+               SEMESTER CHANGE
+               ========================================================= */
+
+            semesterFilter.addEventListener(
+                "change",
+                function () {
+
+                    subjectFilter.value = "";
+
+                    populateSubjects();
+
+                    applyFilters();
+
+                }
+            );
+
+
+            /* =========================================================
+               OTHER FILTER EVENTS
+               ========================================================= */
+
+            search.addEventListener(
+                "input",
+                applyFilters
+            );
+
+
+            subjectFilter.addEventListener(
+                "change",
+                applyFilters
+            );
+
+
+            unitFilter.addEventListener(
+                "change",
+                applyFilters
+            );
+
+
+            /* =========================================================
+               INITIALIZE
+               ========================================================= */
+
+            populateYears();
+
+            populateSemesters();
+
+            populateSubjects();
+
+            populateUnits();
+
+            applyFilters();
+
+        });
+    </script>
+
+</body>
+
+</html>

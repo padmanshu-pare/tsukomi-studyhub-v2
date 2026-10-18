@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Admin Dashboard · TSUKOMI StudyHub</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+
+</head>
+
+<body>
+
+  <div class="admin-page">
+
+    <!-- =====================================================
+         SIDEBAR
+         ===================================================== -->
+
+    <aside class="admin-sidebar">
+
+      <div>
+
+        <div class="admin-brand">
+
+          <div class="admin-brand-icon">
+            ✦
+          </div>
+
+          <div class="admin-brand-text">
+
+            <strong>
+              TSUKOMI
+            </strong>
+
+            <span>
+              PADHAYEGA
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <nav class="admin-nav">
+
+          <div class="admin-nav-title">
+            MAIN
+          </div>
+
+          <a href="{{ url_for('admin_dashboard') }}"
+            class="admin-nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+            <span class="admin-nav-icon">⌂</span>
+            <span class="admin-nav-text">Dashboard</span>
+          </a>
+
+
+          <div class="admin-nav-title">
+            CONTENT
+          </div>
+
+          <a href="{{ url_for('admin_dashboard') }}#publish" class="admin-nav-link">
+            <span class="admin-nav-icon">＋</span>
+            <span class="admin-nav-text">Publish Video</span>
+          </a>
+
+          <a href="{{ url_for('admin_content') }}" class="admin-nav-link">
+            <span class="admin-nav-icon">▣</span>
+            <span class="admin-nav-text">Content Library</span>
+          </a>
+
+
+          <div class="admin-nav-title">
+            SYSTEM
+          </div>
+
+          <a href="{{ url_for('home') }}" target="_blank" class="admin-nav-link">
+            <span class="admin-nav-icon">↗</span>
+            <span class="admin-nav-text">View StudyHub</span>
+          </a>
+
+          <a href="{{ url_for('admin_logout') }}" class="admin-nav-link">
+            <span class="admin-nav-icon">⇥</span>
+            <span class="admin-nav-text">Logout</span>
+          </a>
+
+        </nav>
+
+      </div>
+
+
+      <div class="admin-sidebar-bottom">
+
+        <div class="admin-user">
+
+          <div class="admin-avatar">
+            A
+          </div>
+
+          <div>
+
+            <strong>
+              Administrator
+            </strong>
+
+            <span>
+              StudyHub Admin
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </aside>
+
+
+    <!-- =====================================================
+         MAIN
+         ===================================================== -->
+
+    <main class="admin-main">
+
+      <div class="admin-container">
+
+
+        <!-- HEADER -->
+
+        <header class="admin-topbar">
+
+          <div>
+
+            <div class="admin-eyebrow">
+              Content Management
+            </div>
+
+            <h1 class="admin-title">
+              Welcome back, Admin! 👋
+            </h1>
+
+            <p class="admin-subtitle">
+              Manage your TSUKOMI StudyHub content from one place.
+            </p>
+
+          </div>
+
+
+          <div class="admin-date">
+
+            Today
+
+            <strong>
+              {{ now.strftime('%d %b %Y') if now is defined else 'StudyHub Admin' }}
+            </strong>
+
+          </div>
+
+        </header>
+
+
+        <!-- FLASH -->
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+        {% for category, message in messages %}
+
+        <div class="admin-flash
+                            {% if category == 'error' %}error{% endif %}">
+          {{ message }}
+        </div>
+
+        {% endfor %}
+
+        {% endif %}
+
+        {% endwith %}
+
+
+        <!-- =================================================
+                 STATISTICS
+                 ================================================= -->
+
+        <section class="admin-stats">
+
+          <div class="admin-stat">
+
+            <div class="admin-stat-label">
+              Total Videos
+            </div>
+
+            <div class="admin-stat-value">
+              {{ total_videos }}
+            </div>
+
+            <div class="admin-stat-meta">
+              All uploaded lectures
+            </div>
+
+          </div>
+
+
+          <div class="admin-stat">
+
+            <div class="admin-stat-label">
+              Published
+            </div>
+
+            <div class="admin-stat-value">
+              {{ published }}
+            </div>
+
+            <div class="admin-stat-meta">
+              Currently visible
+            </div>
+
+          </div>
+
+
+          <div class="admin-stat">
+
+            <div class="admin-stat-label">
+              Drafts
+            </div>
+
+            <div class="admin-stat-value">
+
+              {{
+              videos
+              | selectattr("status", "equalto", "draft")
+              | list
+              | length
+              }}
+
+            </div>
+
+            <div class="admin-stat-meta">
+              Work in progress
+            </div>
+
+          </div>
+
+
+          <div class="admin-stat">
+
+            <div class="admin-stat-label">
+              Unlock Time
+            </div>
+
+            <div class="admin-stat-value">
+              {{ required_watch_seconds // 60 }} min
+            </div>
+
+            <div class="admin-stat-meta">
+              Required watch time
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- =================================================
+                 MAIN GRID
+                 ================================================= -->
+
+        <div class="admin-grid">
+
+
+          <!-- LEFT COLUMN -->
+
+          <div class="admin-column">
+
+
+            <!-- PUBLISH -->
+
+            <section class="admin-panel" id="publish">
+
+              <div class="admin-panel-header">
+
+                <div>
+
+                  <h2>
+                    Publish New Video
+                  </h2>
+
+                  <p>
+                    Add a lecture to your StudyHub library.
+                  </p>
+
+                </div>
+
+                <div class="admin-brand-icon">
+                  ▶
+                </div>
+
+              </div>
+
+
+              <div class="admin-panel-body">
+
+                <form method="post" action="{{ url_for('create_video') }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                  <div class="admin-form-grid">
+
+
+                    <!-- YEAR -->
+
+                    <div class="admin-field">
+
+                      <label>
+                        Year
+                      </label>
+
+                      <select name="year" id="admin-year">
+
+                        <option value="">
+                          Select Year
+                        </option>
+
+                        <option value="1">
+                          1st Year
+                        </option>
+
+                        <option value="2">
+                          2nd Year
+                        </option>
+
+                        <option value="3">
+                          3rd Year
+                        </option>
+
+                        <option value="4">
+                          4th Year
+                        </option>
+
+                      </select>
+
+                    </div>
+
+
+                    <!-- SEMESTER -->
+
+                    <div class="admin-field">
+
+                      <label>
+                        Semester
+                      </label>
+
+                      <select name="semester" id="admin-semester">
+
+                        <option value="">
+                          Select Semester
+                        </option>
+
+                      </select>
+
+                    </div>
+
+
+                    <!-- SUBJECT -->
+
+                    <div class="admin-field">
+
+                      <label>
+                        Subject
+                      </label>
+
+                      <select name="subject" id="admin-subject">
+
+                        <option value="">
+                          Select Subject
+                        </option>
+
+                      </select>
+
+                    </div>
+
+
+                    <!-- UNIT -->
+
+                    <div class="admin-field">
+
+                      <label>
+                        Unit
+                      </label>
+
+                      <select name="unit">
+
+                        <option value="">
+                          Select Unit
+                        </option>
+
+                        <option value="1">
+                          Unit 1
+                        </option>
+
+                        <option value="2">
+                          Unit 2
+                        </option>
+
+                        <option value="3">
+                          Unit 3
+                        </option>
+
+                        <option value="4">
+                          Unit 4
+                        </option>
+
+                        <option value="5">
+                          Unit 5
+                        </option>
+
+                      </select>
+
+                    </div>
+
+
+                    <!-- TITLE -->
+
+                    <div class="admin-field full">
+
+                      <label>
+                        Video Title
+                      </label>
+
+                      <input name="title" placeholder="COA Unit 1 — Introduction to Computer Organization">
+
+                    </div>
+
+
+                    <!-- SLUG -->
+
+                    <div class="admin-field full">
+
+                      <label>
+                        Slug
+                        <span style="color:#59657a;">
+                          (optional)
+                        </span>
+                      </label>
+
+                      <input name="slug" placeholder="coa-unit-1-introduction">
+
+                    </div>
+
+
+                    <!-- YOUTUBE -->
+
+                    <div class="admin-field">
+
+                      <label>
+                        YouTube URL
+                      </label>
+
+                      <input name="youtube_url" placeholder="https://youtu.be/XXXXXXXXXXX">
+
+                    </div>
+
+
+                    <!-- NOTES -->
+
+                    <div class="admin-field">
+
+                      <label>
+                        Notes / PDF URL
+                      </label>
+
+                      <input name="notes_url" placeholder="https://drive.google.com/...">
+
+                    </div>
+
+
+                    <!-- DESCRIPTION -->
+
+                    <div class="admin-field full">
+
+                      <label>
+                        Description
+                      </label>
+
+                      <textarea name="description"
+                        placeholder="Write a short description about this lecture..."></textarea>
+
+                    </div>
+
+
+                    <!-- STATUS -->
+
+                    <div class="admin-field">
+
+                      <label>
+                        Publishing Status
+                      </label>
+
+                      <select name="status">
+
+                        <option value="published">
+                          🟢 Publish Now
+                        </option>
+
+                        <option value="draft">
+                          📝 Save as Draft
+                        </option>
+
+                      </select>
+
+                    </div>
+
+
+                  </div>
+
+
+                  <div class="admin-form-footer">
+
+                    <button type="submit" class="admin-button">
+                      ▶ Publish Video
+                    </button>
+
+                  </div>
+
+                </form>
+
+              </div>
+
+            </section>
+
+
+            <!-- CONTENT LIBRARY -->
+
+            <section class="admin-panel" id="library">
+
+              <div class="admin-panel-header">
+
+                <div>
+
+                  <h2>
+                    Content Library
+                  </h2>
+
+                  <p>
+                    Manage and organize your lectures.
+                  </p>
+
+                </div>
+
+                <form method="post" action="{{ url_for('sync_youtube') }}" style="margin: 0;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <button type="submit" class="admin-button" style="background: linear-gradient(135deg, #ff0000, #c40000); color: white; display: inline-flex; align-items: center; gap: 8px; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: transform 0.2s, opacity 0.2s;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    Sync YouTube Channel
+                  </button>
+                </form>
+
+              </div>
+
+
+              <div class="admin-library-toolbar">
+
+                <div class="admin-search">
+
+                  <input type="search" id="admin-search" placeholder="Search videos...">
+
+                </div>
+
+                <div class="admin-filter">
+
+                  <select id="admin-filter-status">
+
+                    <option value="all">
+                      All Status
+                    </option>
+
+                    <option value="published">
+                      Published
+                    </option>
+
+                    <option value="draft">
+                      Draft
+                    </option>
+
+                    <option value="disabled">
+                      Disabled
+                    </option>
+
+                  </select>
+
+                </div>
+
+              </div>
+
+
+              <div class="admin-video-list" id="admin-video-list">
+
+                {% for video in videos %}
+
+                <article class="admin-video" data-title="{{ video.title | lower }}"
+                  data-status="{% if video.published %}published{% elif video.status == 'draft' %}draft{% else %}disabled{% endif %}">
+
+                  <img class="admin-thumbnail" src="https://img.youtube.com/vi/{{ video.youtube_id }}/hqdefault.jpg"
+                    alt="{{ video.title }}">
+
+
+                  <div class="admin-video-info">
+
+                    <h3 class="admin-video-title">
+                      {{ video.title }}
+                    </h3>
+
+
+                    <div class="admin-video-meta">
+
+                      <span>
+                        {{ video.subject or "No subject" }}
+                      </span>
+
+                      <span>
+                        •
+                      </span>
+
+                      <span>
+                        Unit {{ video.unit or "—" }}
+                      </span>
+
+
+                      {% if video.published %}
+
+                      <span class="admin-status published">
+                        ● Published
+                      </span>
+
+                      {% elif video.status == "draft" %}
+
+                      <span class="admin-status draft">
+                        ● Draft
+                      </span>
+
+                      {% else %}
+
+                      <span class="admin-status disabled">
+                        ● Disabled
+                      </span>
+
+                      {% endif %}
+
+                    </div>
+
+                  </div>
+
+
+                  <div class="admin-video-actions">
+
+                    <a class="admin-small-button" href="{{ url_for('watch', slug=video.slug) }}" target="_blank"
+                      title="Preview">
+                      👁
+                    </a>
+
+
+                    <a class="admin-small-button" href="{{ url_for('edit_video', video_id=video._id) }}" title="Edit">
+                      ✏
+                    </a>
+
+
+                    <form method="post" action="{{ url_for('toggle_video', video_id=video._id) }}">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                      <button class="admin-small-button" type="submit" title="Toggle status">
+                        {% if video.published %}
+                        🔒
+                        {% else %}
+                        🟢
+                        {% endif %}
+                      </button>
+
+                    </form>
+
+
+                    <form method="post" action="{{ url_for('delete_video', video_id=video._id) }}"
+                      onsubmit="return confirm('Delete this video permanently?');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                      <button class="admin-small-button danger" type="submit" title="Delete">
+                        🗑
+                      </button>
+
+                    </form>
+
+                  </div>
+
+                </article>
+
+                {% else %}
+
+                <div class="admin-empty">
+
+                  <div class="admin-empty-icon">
+                    📚
+                  </div>
+
+                  <h3>
+                    No videos yet
+                  </h3>
+
+                  <p>
+                    Publish your first lecture to start building the library.
+                  </p>
+
+                </div>
+
+                {% endfor %}
+
+              </div>
+
+            </section>
+
+          </div>
+
+
+          <!-- RIGHT COLUMN -->
+
+          <div class="admin-column">
+
+
+            <!-- QUICK ACTIONS -->
+
+            <section class="admin-panel">
+
+              <div class="admin-panel-header">
+
+                <div>
+
+                  <h2>
+                    Quick Actions
+                  </h2>
+
+                  <p>
+                    Common shortcuts.
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              <div class="admin-panel-body">
+
+                <div class="admin-actions">
+
+
+                  <a href="#publish" class="admin-action">
+
+                    <div class="admin-action-icon">
+                      ＋
+                    </div>
+
+                    <div>
+
+                      <strong>
+                        Publish Video
+                      </strong>
+
+                      <span>
+                        Add a new lecture
+                      </span>
+
+                    </div>
+
+                  </a>
+
+
+                  <a href="{{ url_for('admin_content') }}" class="admin-action">
+
+                    <div class="admin-action-icon">
+                      ▣
+                    </div>
+
+                    <div>
+
+                      <strong>
+                        Manage Content
+                      </strong>
+
+                      <span>
+                        Edit and organize lectures
+                      </span>
+
+                    </div>
+
+                  </a>
+
+
+                  <a href="{{ url_for('home') }}" target="_blank" class="admin-action">
+
+                    <div class="admin-action-icon">
+                      ↗
+                    </div>
+
+                    <div>
+
+                      <strong>
+                        View StudyHub
+                      </strong>
+
+                      <span>
+                        Open public website
+                      </span>
+
+                    </div>
+
+                  </a>
+
+                </div>
+
+              </div>
+
+            </section>
+
+
+            <!-- LIBRARY OVERVIEW -->
+
+            <section class="admin-panel">
+
+              <div class="admin-panel-header">
+
+                <div>
+
+                  <h2>
+                    Library Overview
+                  </h2>
+
+                  <p>
+                    Current content status.
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              <div class="admin-panel-body">
+
+                <div class="admin-actions">
+
+                  <div class="admin-action">
+
+                    <div class="admin-action-icon">
+                      ✓
+                    </div>
+
+                    <div>
+
+                      <strong>
+                        {{ published }} Published
+                      </strong>
+
+                      <span>
+                        Visible on StudyHub
+                      </span>
+
+                    </div>
+
+                  </div>
+
+
+                  <div class="admin-action">
+
+                    <div class="admin-action-icon">
+                      📝
+                    </div>
+
+                    <div>
+
+                      <strong>
+
+                        {{
+                        videos
+                        | selectattr("status", "equalto", "draft")
+                        | list
+                        | length
+                        }}
+
+                        Drafts
+
+                      </strong>
+
+                      <span>
+                        Work in progress
+                      </span>
+
+                    </div>
+
+                  </div>
+
+
+                  <div class="admin-action">
+
+                    <div class="admin-action-icon">
+                      🔒
+                    </div>
+
+                    <div>
+
+                      <strong>
+                        Disabled
+                      </strong>
+
+                      <span>
+                        Hidden content
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </section>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+
+  <!-- =========================================================
+     ADMIN JAVASCRIPT
+     ========================================================= -->
+
+  <script>
+
+    const curriculum = {
+
+      1: {
+        1: [
+          "Engineering Chemistry",
+          "Basic Electrical & Electronics Engineering",
+          "Mathematics-I",
+          "Engineering Graphics",
+          "English"
+        ],
+
+        2: [
+          "Engineering Physics",
+          "Mathematics-II",
+          "Basic Mechanical Engineering",
+          "Basic Civil Engineering & Engineering Mechanics",
+          "Basic Computer Engineering",
+          "Language Lab & Seminars"
+        ]
+      },
+
+      2: {
+        3: [
+          "Subject 1",
+          "Subject 2",
+          "Subject 3",
+          "Subject 4",
+          "Subject 5",
+          "Subject 6"
+        ],
+
+        4: [
+          "Mathematics-III",
+          "Analysis & Design of Algorithms",
+          "Software Engineering",
+          "Computer Organization & Architecture",
+          "Operating Systems",
+          "Programming Practices"
+        ]
+      },
+
+      3: {
+        5: [
+          "Subject 1",
+          "Subject 2",
+          "Subject 3",
+          "Subject 4",
+          "Subject 5",
+          "Subject 6"
+        ],
+
+        6: [
+          "Subject 1",
+          "Subject 2",
+          "Subject 3",
+          "Subject 4",
+          "Subject 5",
+          "Subject 6"
+        ]
+      },
+
+      4: {
+        7: [
+          "Subject 1",
+          "Subject 2",
+          "Subject 3",
+          "Subject 4",
+          "Subject 5",
+          "Subject 6"
+        ],
+
+        8: [
+          "Subject 1",
+          "Subject 2",
+          "Subject 3",
+          "Subject 4",
+          "Subject 5",
+          "Subject 6"
+        ]
+      }
+
+    };
+
+
+    const yearSelect =
+      document.getElementById("admin-year");
+
+    const semesterSelect =
+      document.getElementById("admin-semester");
+
+    const subjectSelect =
+      document.getElementById("admin-subject");
+
+
+    function getOrdinal(number) {
+
+      if (number == 1) return "1st";
+
+      if (number == 2) return "2nd";
+
+      if (number == 3) return "3rd";
+
+      return number + "th";
+
+    }
+
+
+    yearSelect.addEventListener("change", function () {
+
+      semesterSelect.innerHTML =
+        '<option value="">Select Semester</option>';
+
+      subjectSelect.innerHTML =
+        '<option value="">Select Subject</option>';
+
+
+      const year =
+        curriculum[this.value];
+
+
+      if (!year) return;
+
+
+      Object.keys(year).forEach(function (semester) {
+
+        const option =
+          document.createElement("option");
+
+        option.value =
+          semester;
+
+        option.textContent =
+          getOrdinal(Number(semester)) +
+          " Semester";
+
+        semesterSelect.appendChild(option);
+
+      });
+
+    });
+
+
+    semesterSelect.addEventListener("change", function () {
+
+      subjectSelect.innerHTML =
+        '<option value="">Select Subject</option>';
+
+
+      const year =
+        curriculum[yearSelect.value];
+
+      if (!year) return;
+
+
+      const subjects =
+        year[this.value];
+
+      if (!subjects) return;
+
+
+      subjects.forEach(function (subject) {
+
+        const option =
+          document.createElement("option");
+
+        option.value =
+          subject;
+
+        option.textContent =
+          subject;
+
+        subjectSelect.appendChild(option);
+
+      });
+
+    });
+
+
+    /* =========================================================
+       LIBRARY SEARCH
+       ========================================================= */
+
+    const searchInput =
+      document.getElementById("admin-search");
+
+    const statusFilter =
+      document.getElementById("admin-filter-status");
+
+    const videoCards =
+      document.querySelectorAll(".admin-video");
+
+
+    function filterVideos() {
+
+      const search =
+        searchInput.value.toLowerCase().trim();
+
+      const status =
+        statusFilter.value;
+
+
+      videoCards.forEach(function (card) {
+
+        const title =
+          card.dataset.title || "";
+
+        const cardStatus =
+          card.dataset.status || "";
+
+
+        const matchesSearch =
+          title.includes(search);
+
+        const matchesStatus =
+          status === "all" ||
+          cardStatus === status;
+
+
+        card.style.display =
+          matchesSearch && matchesStatus
+            ? ""
+            : "none";
+
+      });
+
+    }
+
+
+    searchInput.addEventListener(
+      "input",
+      filterVideos
+    );
+
+    statusFilter.addEventListener(
+      "change",
+      filterVideos
+    );
+
+  </script>
+
+</body>
+
+</html>

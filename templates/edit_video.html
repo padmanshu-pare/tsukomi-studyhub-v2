@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Video · TSUKOMI StudyHub</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+
+    <style>
+        /* =====================================================
+           EDIT VIDEO PAGE
+           ===================================================== */
+
+        .edit-page {
+            max-width: 1050px;
+            margin: 0 auto;
+        }
+
+        .edit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 30px;
+            margin-bottom: 28px;
+        }
+
+        .edit-eyebrow {
+            color: #ff3f7f;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .edit-title {
+            margin: 0;
+            color: #ffffff;
+            font-size: clamp(32px, 4vw, 48px);
+            line-height: 1;
+            font-weight: 800;
+        }
+
+        .edit-subtitle {
+            margin: 10px 0 0;
+            color: #71809a;
+            font-size: 14px;
+        }
+
+        .edit-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 16px;
+            border: 1px solid #252d3d;
+            border-radius: 10px;
+            background: #0d1420;
+            color: #aeb8c8;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            transition: .2s ease;
+        }
+
+        .edit-back:hover {
+            color: white;
+            border-color: #ff3f7f;
+            background: rgba(255, 63, 127, .06);
+        }
+
+        /* =====================================================
+           MAIN CARD
+           ===================================================== */
+
+        .edit-card {
+            background:
+                linear-gradient(145deg,
+                    rgba(16, 23, 36, .98),
+                    rgba(9, 14, 23, .98));
+
+            border: 1px solid #202a3a;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, .28);
+        }
+
+        .edit-card-header {
+            padding: 24px 28px;
+            border-bottom: 1px solid #202a3a;
+        }
+
+        .edit-card-header h2 {
+            margin: 0;
+            color: white;
+            font-size: 19px;
+        }
+
+        .edit-card-header p {
+            margin: 7px 0 0;
+            color: #68758a;
+            font-size: 12px;
+        }
+
+        .edit-form {
+            padding: 28px;
+        }
+
+        /* =====================================================
+           SECTION
+           ===================================================== */
+
+        .form-section {
+            margin-bottom: 32px;
+        }
+
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .section-number {
+            width: 30px;
+            height: 30px;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 8px;
+
+            background: rgba(255, 63, 127, .10);
+            border: 1px solid rgba(255, 63, 127, .22);
+
+            color: #ff3f7f;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .section-heading h3 {
+            margin: 0;
+            color: #f3f5f8;
+            font-size: 15px;
+        }
+
+        .section-heading p {
+            margin: 3px 0 0;
+            color: #647188;
+            font-size: 11px;
+        }
+
+        /* =====================================================
+           GRID
+           ===================================================== */
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .form-grid.single {
+            grid-template-columns: 1fr;
+        }
+
+        .field {
+            min-width: 0;
+        }
+
+        .field.full {
+            grid-column: 1 / -1;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 7px;
+            color: #b8c3d4;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .optional {
+            color: #58657a;
+            font-weight: 500;
+            margin-left: 4px;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            box-sizing: border-box;
+
+            padding: 13px 14px;
+
+            border: 1px solid #242e40;
+            border-radius: 10px;
+
+            background: #080e18;
+            color: #eef2f8;
+
+            font-family: inherit;
+            font-size: 13px;
+
+            outline: none;
+
+            transition:
+                border-color .2s ease,
+                box-shadow .2s ease,
+                background .2s ease;
+        }
+
+        .field input::placeholder,
+        .field textarea::placeholder {
+            color: #3f4b5f;
+        }
+
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
+            border-color: #ff3f7f;
+
+            box-shadow:
+                0 0 0 3px rgba(255, 63, 127, .08);
+
+            background: #0a101b;
+        }
+
+        .field textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .field select {
+            cursor: pointer;
+        }
+
+        .field select option {
+            background: #0b111c;
+            color: white;
+        }
+
+        .field-help {
+            margin-top: 6px;
+            color: #566379;
+            font-size: 10px;
+        }
+
+        /* =====================================================
+           STATUS
+           ===================================================== */
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .status-option {
+            position: relative;
+        }
+
+        .status-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .status-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 15px;
+
+            border: 1px solid #252f40;
+            border-radius: 11px;
+
+            background: #090f19;
+
+            cursor: pointer;
+
+            transition: .2s ease;
+        }
+
+        .status-label:hover {
+            border-color: #354157;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-dot.green {
+            background: #36d98a;
+            box-shadow: 0 0 12px rgba(54, 217, 138, .35);
+        }
+
+        .status-dot.yellow {
+            background: #f4bd4f;
+            box-shadow: 0 0 12px rgba(244, 189, 79, .35);
+        }
+
+        .status-text strong {
+            display: block;
+            color: #eef2f8;
+            font-size: 12px;
+        }
+
+        .status-text span {
+            display: block;
+            margin-top: 3px;
+            color: #5f6c81;
+            font-size: 10px;
+        }
+
+        .status-option input:checked+.status-label {
+            border-color: #ff3f7f;
+            background: rgba(255, 63, 127, .07);
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 63, 127, .12);
+        }
+
+        /* =====================================================
+           ACTIONS
+           ===================================================== */
+
+        .edit-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+
+            padding-top: 25px;
+            margin-top: 30px;
+
+            border-top: 1px solid #202a3a;
+        }
+
+        .edit-actions-left {
+            color: #59667b;
+            font-size: 11px;
+        }
+
+        .edit-actions-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+
+            min-height: 44px;
+            padding: 0 18px;
+
+            border-radius: 10px;
+
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 800;
+
+            text-decoration: none;
+            cursor: pointer;
+
+            transition: .2s ease;
+        }
+
+        .btn-secondary {
+            border: 1px solid #293447;
+            background: #0d1420;
+            color: #aeb8c8;
+        }
+
+        .btn-secondary:hover {
+            color: white;
+            border-color: #3a475c;
+        }
+
+        .btn-primary {
+            border: 1px solid #ff3f7f;
+            background: #ff3f7f;
+            color: white;
+
+            box-shadow:
+                0 8px 25px rgba(255, 63, 127, .18);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            background: #ff4f8a;
+            box-shadow:
+                0 12px 30px rgba(255, 63, 127, .25);
+        }
+
+        /* =====================================================
+           CURRENT VIDEO
+           ===================================================== */
+
+        .current-video {
+            display: grid;
+            grid-template-columns: 180px minmax(0, 1fr);
+            gap: 18px;
+
+            padding: 15px;
+
+            border: 1px solid #202a3a;
+            border-radius: 12px;
+
+            background: #080e18;
+        }
+
+        .current-video img {
+            width: 180px;
+            height: 102px;
+
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .current-video-info {
+            min-width: 0;
+            align-self: center;
+        }
+
+        .current-video-info span {
+            display: block;
+            color: #59667b;
+            font-size: 10px;
+            margin-bottom: 6px;
+        }
+
+        .current-video-info strong {
+            display: block;
+            color: white;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        /* =====================================================
+           RESPONSIVE
+           ===================================================== */
+
+        @media (max-width: 800px) {
+
+            .edit-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .field.full {
+                grid-column: auto;
+            }
+
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .current-video {
+                grid-template-columns: 120px minmax(0, 1fr);
+            }
+
+            .current-video img {
+                width: 120px;
+                height: 68px;
+            }
+
+            .edit-actions {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .edit-actions-right {
+                width: 100%;
+            }
+
+            .edit-actions-right .btn {
+                flex: 1;
+            }
+        }
+
+        @media (max-width: 500px) {
+
+            .edit-form {
+                padding: 18px;
+            }
+
+            .edit-card-header {
+                padding: 20px;
+            }
+
+            .current-video {
+                grid-template-columns: 1fr;
+            }
+
+            .current-video img {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 16 / 9;
+            }
+        }
+    </style>
+</head>
+
+
+<body>
+
+    <div class="admin-page">
+
+        {% include "admin_sidebar.html" %}
+
+
+        <main class="admin-main">
+
+            <div class="admin-container edit-page">
+
+
+                <!-- HEADER -->
+
+                <header class="edit-header">
+
+                    <div>
+
+                        <div class="edit-eyebrow">
+                            Content Management
+                        </div>
+
+                        <h1 class="edit-title">
+                            Edit Video
+                        </h1>
+
+                        <p class="edit-subtitle">
+                            Update lecture details, organization and publication status.
+                        </p>
+
+                    </div>
+
+
+                    <a href="{{ url_for('admin_content') }}" class="edit-back">
+                        ← Back to Library
+                    </a>
+
+                </header>
+
+
+
+                <!-- EDIT CARD -->
+
+                <section class="edit-card">
+
+
+                    <div class="edit-card-header">
+
+                        <h2>
+                            {{ video.title or "Untitled Lecture" }}
+                        </h2>
+
+                        <p>
+                            Changes are saved directly to your StudyHub content library.
+                        </p>
+
+                    </div>
+
+
+
+                    <form method="post" action="{{ url_for('edit_video', video_id=video._id) }}" class="edit-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+
+                        <!-- =================================================
+                             VIDEO INFORMATION
+                             ================================================= -->
+
+                        <section class="form-section">
+
+                            <div class="section-heading">
+
+                                <div class="section-number">
+                                    01
+                                </div>
+
+                                <div>
+
+                                    <h3>
+                                        Video Information
+                                    </h3>
+
+                                    <p>
+                                        Basic information about this lecture.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="form-grid">
+
+                                <div class="field full">
+
+                                    <label>
+                                        Video Title
+                                    </label>
+
+                                    <input type="text" name="title" value="{{ video.title or '' }}"
+                                        placeholder="COA Unit 1 — Introduction to Computer Organization">
+
+                                </div>
+
+
+                                <div class="field full">
+
+                                    <label>
+                                        Slug
+                                        <span class="optional">
+                                            optional
+                                        </span>
+                                    </label>
+
+                                    <input type="text" name="slug" value="{{ video.slug or '' }}"
+                                        placeholder="coa-unit-1-introduction">
+
+                                    <div class="field-help">
+                                        Leave empty to generate it automatically from the title.
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </section>
+
+
+
+                        <!-- =================================================
+                             ORGANIZATION
+                             ================================================= -->
+
+                        <section class="form-section">
+
+                            <div class="section-heading">
+
+                                <div class="section-number">
+                                    02
+                                </div>
+
+                                <div>
+
+                                    <h3>
+                                        Academic Organization
+                                    </h3>
+
+                                    <p>
+                                        Organize this lecture inside your RGPV curriculum.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="form-grid">
+
+
+                                <div class="field">
+
+                                    <label>
+                                        Year
+                                    </label>
+
+                                    <select name="year" id="edit-year">
+
+                                        <option value="">
+                                            Select Year
+                                        </option>
+
+                                        <option value="1" {% if video.year=="1" %}selected{% endif %}>
+                                            1st Year
+                                        </option>
+
+                                        <option value="2" {% if video.year=="2" %}selected{% endif %}>
+                                            2nd Year
+                                        </option>
+
+                                        <option value="3" {% if video.year=="3" %}selected{% endif %}>
+                                            3rd Year
+                                        </option>
+
+                                        <option value="4" {% if video.year=="4" %}selected{% endif %}>
+                                            4th Year
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+
+
+                                <div class="field">
+
+                                    <label>
+                                        Semester
+                                    </label>
+
+                                    <select name="semester" id="edit-semester">
+
+                                        <option value="">
+                                            Select Semester
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+
+
+                                <div class="field">
+
+                                    <label>
+                                        Subject
+                                    </label>
+
+                                    <select name="subject" id="edit-subject">
+
+                                        <option value="">
+                                            Select Subject
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+
+
+                                <div class="field">
+
+                                    <label>
+                                        Unit
+                                    </label>
+
+                                    <select name="unit" id="edit-unit">
+
+                                        <option value="">
+                                            No Unit / Select Unit
+                                        </option>
+
+                                        <option value="1">
+                                            Unit 1
+                                        </option>
+
+                                        <option value="2">
+                                            Unit 2
+                                        </option>
+
+                                        <option value="3">
+                                            Unit 3
+                                        </option>
+
+                                        <option value="4">
+                                            Unit 4
+                                        </option>
+
+                                        <option value="5">
+                                            Unit 5
+                                        </option>
+
+                                        <option value="ALL">
+                                            All Units
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+                        </section>
+
+
+
+                        <!-- =================================================
+                             LINKS
+                             ================================================= -->
+
+                        <section class="form-section">
+
+                            <div class="section-heading">
+
+                                <div class="section-number">
+                                    03
+                                </div>
+
+                                <div>
+
+                                    <h3>
+                                        Video & Notes
+                                    </h3>
+
+                                    <p>
+                                        Connect the lecture and study material.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="form-grid">
+
+
+                                <div class="field full">
+
+                                    <label>
+                                        YouTube URL
+                                    </label>
+
+                                    <input type="url" name="youtube_url" value="{{ video.youtube_url or '' }}"
+                                        placeholder="https://youtube.com/watch?v=...">
+
+                                    <div class="field-help">
+                                        Required only when publishing. Drafts can be saved without a YouTube URL.
+                                    </div>
+
+                                </div>
+
+
+
+                                <div class="field full">
+
+                                    <label>
+                                        Notes / PDF URL
+                                        <span class="optional">
+                                            optional
+                                        </span>
+                                    </label>
+
+                                    <input type="url" name="notes_url" value="{{ video.notes_url or '' }}"
+                                        placeholder="https://drive.google.com/...">
+
+                                    <div class="field-help">
+                                        You can add the notes link later.
+                                    </div>
+
+                                </div>
+
+
+
+                                <div class="field full">
+
+                                    <label>
+                                        Description
+                                        <span class="optional">
+                                            optional
+                                        </span>
+                                    </label>
+
+                                    <textarea name="description"
+                                        placeholder="Write a short description about this lecture...">{{ video.description or '' }}</textarea>
+
+                                </div>
+
+                            </div>
+
+                        </section>
+
+
+
+                        <!-- =================================================
+                             STATUS
+                             ================================================= -->
+
+                        <section class="form-section">
+
+                            <div class="section-heading">
+
+                                <div class="section-number">
+                                    04
+                                </div>
+
+                                <div>
+
+                                    <h3>
+                                        Publication
+                                    </h3>
+
+                                    <p>
+                                        Control whether students can see this lecture.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="status-grid">
+
+
+                                <div class="status-option">
+
+                                    <input type="radio" name="status" id="status-published" value="published" {% if
+                                        video.published %}checked{% endif %}>
+
+                                    <label for="status-published" class="status-label">
+
+                                        <span class="status-dot green"></span>
+
+                                        <span class="status-text">
+
+                                            <strong>
+                                                Published
+                                            </strong>
+
+                                            <span>
+                                                Visible on StudyHub
+                                            </span>
+
+                                        </span>
+
+                                    </label>
+
+                                </div>
+
+
+
+                                <div class="status-option">
+
+                                    <input type="radio" name="status" id="status-draft" value="draft" {% if not
+                                        video.published %}checked{% endif %}>
+
+                                    <label for="status-draft" class="status-label">
+
+                                        <span class="status-dot yellow"></span>
+
+                                        <span class="status-text">
+
+                                            <strong>
+                                                Draft
+                                            </strong>
+
+                                            <span>
+                                                Keep hidden until ready
+                                            </span>
+
+                                        </span>
+
+                                    </label>
+
+                                </div>
+
+
+                            </div>
+
+                        </section>
+
+
+
+                        <!-- =================================================
+                             ACTIONS
+                             ================================================= -->
+
+                        <div class="edit-actions">
+
+                            <div class="edit-actions-left">
+
+                                Editing:
+                                <strong>
+                                    {{ video.slug or "unsaved-video" }}
+                                </strong>
+
+                            </div>
+
+
+                            <div class="edit-actions-right">
+
+                                <a href="{{ url_for('admin_content') }}" class="btn btn-secondary">
+                                    Cancel
+                                </a>
+
+
+                                <button type="submit" class="btn btn-primary">
+                                    ✓ Save Changes
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                    </form>
+
+                </section>
+
+            </div>
+
+        </main>
+
+    </div>
+
+
+
+    <!-- =========================================================
+     CURRENT VIDEO DATA
+     ========================================================= -->
+
+    <div id="edit-video-data" data-year="{{ video.year or '' }}" data-semester="{{ video.semester or '' }}"
+        data-subject="{{ video.subject or '' }}" data-unit="{{ video.unit or '' }}" hidden>
+    </div>
+
+
+    <!-- =========================================================
+     CURRICULUM LOGIC
+     ========================================================= -->
+
+    <script>
+
+        const videoData =
+            document.getElementById("edit-video-data");
+
+
+        const currentYear =
+            videoData.dataset.year;
+
+
+        const currentSemester =
+            videoData.dataset.semester;
+
+
+        const currentSubject =
+            videoData.dataset.subject;
+
+
+        const currentUnit =
+            videoData.dataset.unit;
+
+
+
+
+
+        const curriculum = {
+            "1": {
+                "1": [
+                    "Engineering Chemistry",
+                    "Basic Electrical & Electronics Engineering",
+                    "Mathematics-I",
+                    "Engineering Graphics",
+                    "English"
+                ],
+                "2": [
+                    "Engineering Physics",
+                    "Mathematics-II",
+                    "Basic Mechanical Engineering",
+                    "Basic Civil Engineering & Engineering Mechanics",
+                    "Basic Computer Engineering",
+                    "Language Lab & Seminars"
+                ]
+            },
+
+            "2": {
+                "3": [
+                    "Subject 1",
+                    "Subject 2",
+                    "Subject 3",
+                    "Subject 4",
+                    "Subject 5",
+                    "Subject 6"
+                ],
+                "4": [
+                    "Mathematics-III",
+                    "Analysis & Design of Algorithms",
+                    "Software Engineering",
+                    "Computer Organization & Architecture",
+                    "Operating Systems",
+                    "Programming Practices"
+                ]
+            },
+
+            "3": {
+                "5": [
+                    "Subject 1",
+                    "Subject 2",
+                    "Subject 3",
+                    "Subject 4",
+                    "Subject 5",
+                    "Subject 6"
+                ],
+                "6": [
+                    "Subject 1",
+                    "Subject 2",
+                    "Subject 3",
+                    "Subject 4",
+                    "Subject 5",
+                    "Subject 6"
+                ]
+            },
+
+            "4": {
+                "7": [
+                    "Subject 1",
+                    "Subject 2",
+                    "Subject 3",
+                    "Subject 4",
+                    "Subject 5",
+                    "Subject 6"
+                ],
+                "8": [
+                    "Subject 1",
+                    "Subject 2",
+                    "Subject 3",
+                    "Subject 4",
+                    "Subject 5",
+                    "Subject 6"
+                ]
+            }
+        };
+
+        const yearSelect = document.getElementById("edit-year");
+        const semesterSelect = document.getElementById("edit-semester");
+        const subjectSelect = document.getElementById("edit-subject");
+        const unitSelect = document.getElementById("edit-unit");
+
+        function getSemesterLabel(number) {
+            const n = Number(number);
+
+            if (n === 1) return "1st Semester";
+            if (n === 2) return "2nd Semester";
+            if (n === 3) return "3rd Semester";
+
+            return `${n}th Semester`;
+        }
+
+        function loadSemesters(selectedSemester = "") {
+            semesterSelect.innerHTML =
+                '<option value="">Select Semester</option>';
+
+            subjectSelect.innerHTML =
+                '<option value="">Select Subject</option>';
+
+            const yearData = curriculum[yearSelect.value];
+
+            if (!yearData) {
+                return;
+            }
+
+            Object.keys(yearData).forEach((semester) => {
+                const option = document.createElement("option");
+
+                option.value = semester;
+                option.textContent = getSemesterLabel(semester);
+
+                if (String(semester) === String(selectedSemester)) {
+                    option.selected = true;
+                }
+
+                semesterSelect.appendChild(option);
+            });
+        }
+
+        function loadSubjects(selectedSubject = "") {
+            subjectSelect.innerHTML =
+                '<option value="">Select Subject</option>';
+
+            const yearData = curriculum[yearSelect.value];
+
+            if (!yearData) {
+                return;
+            }
+
+            const subjects = yearData[semesterSelect.value];
+
+            if (!subjects) {
+                return;
+            }
+
+            subjects.forEach((subject) => {
+                const option = document.createElement("option");
+
+                option.value = subject;
+                option.textContent = subject;
+
+                if (subject === selectedSubject) {
+                    option.selected = true;
+                }
+
+                subjectSelect.appendChild(option);
+            });
+        }
+
+        yearSelect.addEventListener("change", () => {
+            loadSemesters();
+            loadSubjects();
+        });
+
+        semesterSelect.addEventListener("change", () => {
+            loadSubjects();
+        });
+
+        /*
+         * Restore existing values when editing
+         */
+        if (currentYear) {
+            yearSelect.value = currentYear;
+
+            loadSemesters(currentSemester);
+            loadSubjects(currentSubject);
+        }
+
+        if (currentUnit) {
+            unitSelect.value = currentUnit;
+        }
+    </script>
+</body>
+
+</html>

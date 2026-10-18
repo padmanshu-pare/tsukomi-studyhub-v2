@@ -1,0 +1,1064 @@
+{% extends "base.html" %}
+
+{% block title %}StudyHub · TSUKOMI PADHAYEGA{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+
+<section class="hero hero-home">
+
+  <div class="hero-copy">
+
+    <p class="eyebrow">
+      RGPV • B.Tech • Exam Preparation
+    </p>
+
+    <h1>
+      Learn from the lecture.
+      <span>Unlock the notes.</span>
+    </h1>
+
+    <p>
+      Short, exam-focused lectures and notes for your
+      RGPV preparation — all in one place.
+    </p>
+
+  </div>
+
+</section>
+
+<section class="library-search panel" aria-label="Search lecture library">
+  <form method="get" class="search-form">
+    <label class="search-field">
+      <span class="sr-only">Search lectures</span>
+      <input type="search" name="q" value="{{ query }}" placeholder="Search a subject, unit, or lecture title">
+    </label>
+    <select name="year" aria-label="Filter by year">
+      <option value="">All years</option>
+      {% for year in years %}<option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>{% endfor %}
+    </select>
+    <select name="semester" aria-label="Filter by semester">
+      <option value="">All semesters</option>
+      {% for semester in semesters %}<option value="{{ semester }}" {% if selected_semester == semester %}selected{% endif %}>{{ semester }}</option>{% endfor %}
+    </select>
+    <select name="subject" aria-label="Filter by subject">
+      <option value="">All subjects</option>
+      {% for subject in subjects %}<option value="{{ subject }}" {% if selected_subject == subject %}selected{% endif %}>{{ subject }}</option>{% endfor %}
+    </select>
+    <select name="unit" aria-label="Filter by unit">
+      <option value="">All units</option>
+      {% for unit in units %}<option value="{{ unit }}" {% if selected_unit == unit %}selected{% endif %}>{{ unit }}</option>{% endfor %}
+    </select>
+    <button class="button" type="submit">Find lectures</button>
+    {% if query or selected_subject or selected_year or selected_semester or selected_unit %}
+    <a class="clear-filters" href="{{ url_for('home') }}">Clear</a>
+    {% endif %}
+  </form>
+</section>
+
+
+<!-- ============================================================
+     FIND WHAT YOU ARE STUDYING
+     ============================================================ -->
+
+<section class="study-selector panel" id="study-selector">
+
+  <div class="study-selector-header">
+
+    <div>
+
+      <p class="eyebrow">
+        FIND WHAT YOU'RE STUDYING
+      </p>
+
+      <h2 id="selector-title">
+        Choose your year
+      </h2>
+
+      <p id="selector-description">
+        Start by selecting your B.Tech year.
+      </p>
+
+    </div>
+
+    <button id="selector-back" class="selector-back hidden" type="button">
+      ← Back
+    </button>
+
+  </div>
+
+
+  <!-- STEP 1 : YEAR -->
+
+  <div id="year-selection" class="selection-grid">
+
+    <button class="selection-card" data-year="1" type="button">
+
+      <div class="selection-icon">
+        01
+      </div>
+
+      <div class="selection-info">
+
+        <strong>1st Year</strong>
+
+        <span>
+          Semester 1 & 2
+        </span>
+
+      </div>
+
+      <div class="selection-arrow">
+        →
+      </div>
+
+    </button>
+
+
+    <button class="selection-card" data-year="2" type="button">
+
+      <div class="selection-icon">
+        02
+      </div>
+
+      <div class="selection-info">
+
+        <strong>2nd Year</strong>
+
+        <span>
+          Semester 3 & 4
+        </span>
+
+      </div>
+
+      <div class="selection-arrow">
+        →
+      </div>
+
+    </button>
+
+
+    <button class="selection-card" data-year="3" type="button">
+
+      <div class="selection-icon">
+        03
+      </div>
+
+      <div class="selection-info">
+
+        <strong>3rd Year</strong>
+
+        <span>
+          Semester 5 & 6
+        </span>
+
+      </div>
+
+      <div class="selection-arrow">
+        →
+      </div>
+
+    </button>
+
+
+    <button class="selection-card" data-year="4" type="button">
+
+      <div class="selection-icon">
+        04
+      </div>
+
+      <div class="selection-info">
+
+        <strong>4th Year</strong>
+
+        <span>
+          Semester 7 & 8
+        </span>
+
+      </div>
+
+      <div class="selection-arrow">
+        →
+      </div>
+
+    </button>
+
+  </div>
+
+
+  <!-- STEP 2 : SEMESTER -->
+
+  <div id="semester-selection" class="selection-grid hidden"></div>
+
+
+  <!-- STEP 3 : SUBJECT -->
+
+  <div id="subject-selection" class="selection-grid subject-selection hidden"></div>
+
+
+  <!-- CURRENT SELECTION -->
+
+  <div id="selection-path" class="selection-path hidden"></div>
+
+</section>
+
+
+
+
+
+<!-- ============================================================
+     LECTURES
+     ============================================================ -->
+
+<div class="section-heading">
+
+  <div>
+
+    <p class="eyebrow">
+      STUDY LIBRARY
+    </p>
+
+    <h2>
+      {{ "Search Results"
+      if (query or selected_subject or selected_unit)
+      else "Latest Lectures" }}
+    </h2>
+
+  </div>
+
+  <span class="result-count">
+
+    {{ total_videos }}
+
+    lecture{% if videos|length != 1 %}s{% endif %}
+
+  </span>
+
+</div>
+
+{% if total_pages > 1 %}
+<nav class="pagination" aria-label="Lecture pages">
+  {% if page > 1 %}
+  <a href="{{ url_for('home', q=query, subject=selected_subject, year=selected_year, semester=selected_semester, unit=selected_unit, page=page - 1) }}">← Previous</a>
+  {% endif %}
+  <span>Page {{ page }} of {{ total_pages }}</span>
+  {% if page < total_pages %}
+  <a href="{{ url_for('home', q=query, subject=selected_subject, year=selected_year, semester=selected_semester, unit=selected_unit, page=page + 1) }}">Next →</a>
+  {% endif %}
+</nav>
+{% endif %}
+
+
+<div class="grid video-grid">
+
+  {% for video in videos %}
+
+  <article class="video-card-public" data-year="{{ video.year }}" data-semester="{{ video.semester }}"
+    data-subject="{{ video.subject }}">
+
+    <a class="thumb" href="{{ url_for('watch', slug=video.slug) }}" aria-label="Watch {{ video.title }}">
+
+      <img src="https://img.youtube.com/vi/{{ video.youtube_id }}/hqdefault.jpg" alt="{{ video.title }} thumbnail"
+        loading="lazy">
+
+      <span class="play-badge">
+        ▶
+      </span>
+
+    </a>
+
+
+    <div class="video-card-body">
+
+      <div class="meta-row">
+
+        <span class="pill">
+          {{ video.unit or "Lecture" }}
+        </span>
+
+        {% if video.subject %}
+
+        <span class="meta-subject">
+          {{ video.subject }}
+        </span>
+
+        {% endif %}
+
+      </div>
+
+
+      <h3>
+        {{ video.title }}
+      </h3>
+
+
+      <p>
+        {{ video.description
+        or
+        "Exam-focused lecture with notes available after the required watch time." }}
+      </p>
+
+
+      <a class="watch-link" href="{{ url_for('watch', slug=video.slug) }}">
+
+        Watch & Unlock Notes
+
+        <span>
+          →
+        </span>
+
+      </a>
+
+    </div>
+
+  </article>
+
+  {% else %}
+
+  <div class="empty-state panel">
+
+    <div class="empty-icon">
+      ⌕
+    </div>
+
+    <h2>
+      No lectures found
+    </h2>
+
+    <p>
+      Try another keyword or clear the filters.
+    </p>
+
+    <a class="button" href="{{ url_for('home') }}">
+      View All Lectures
+    </a>
+
+  </div>
+
+  {% endfor %}
+
+</div>
+
+
+<!-- ============================================================
+     YEAR / SEMESTER / SUBJECT LOGIC
+     ============================================================ -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+
+    /* =========================================================
+       CURRICULUM
+       ========================================================= */
+
+    const curriculum = {
+      1: {
+        name: "1st Year",
+        semesters: {
+          1: {
+            name: "1st Semester",
+            subjects: [
+              "Engineering Chemistry",
+              "Basic Electrical & Electronics Engineering",
+              "Mathematics-I",
+              "Engineering Graphics",
+              "English"
+            ]
+          },
+          2: {
+            name: "2nd Semester",
+            subjects: [
+              "Engineering Physics",
+              "Mathematics-II",
+              "Basic Mechanical Engineering",
+              "Basic Civil Engineering & Engineering Mechanics",
+              "Basic Computer Engineering",
+              "Language Lab & Seminars"
+            ]
+          }
+        }
+      },
+
+      2: {
+        name: "2nd Year",
+        semesters: {
+          3: {
+            name: "3rd Semester",
+            subjects: [
+              "Subject 1",
+              "Subject 2",
+              "Subject 3",
+              "Subject 4",
+              "Subject 5",
+              "Subject 6"
+            ]
+          },
+
+          4: {
+            name: "4th Semester",
+            subjects: [
+              "Mathematics-III",
+              "Analysis & Design of Algorithms",
+              "Software Engineering",
+              "Computer Organization & Architecture",
+              "Operating Systems",
+              "Programming Practices"
+            ]
+          }
+        }
+      },
+
+      3: {
+        name: "3rd Year",
+        semesters: {
+          5: {
+            name: "5th Semester",
+            subjects: [
+              "Subject 1",
+              "Subject 2",
+              "Subject 3",
+              "Subject 4",
+              "Subject 5",
+              "Subject 6"
+            ]
+          },
+
+          6: {
+            name: "6th Semester",
+            subjects: [
+              "Subject 1",
+              "Subject 2",
+              "Subject 3",
+              "Subject 4",
+              "Subject 5",
+              "Subject 6"
+            ]
+          }
+        }
+      },
+
+      4: {
+        name: "4th Year",
+        semesters: {
+          7: {
+            name: "7th Semester",
+            subjects: [
+              "Subject 1",
+              "Subject 2",
+              "Subject 3",
+              "Subject 4",
+              "Subject 5",
+              "Subject 6"
+            ]
+          },
+
+          8: {
+            name: "8th Semester",
+            subjects: [
+              "Subject 1",
+              "Subject 2",
+              "Subject 3",
+              "Subject 4",
+              "Subject 5",
+              "Subject 6"
+            ]
+          }
+        }
+      }
+    };
+
+
+    /* =========================================================
+       ELEMENTS
+       ========================================================= */
+
+    const yearSelection =
+      document.getElementById("year-selection");
+
+    const semesterSelection =
+      document.getElementById("semester-selection");
+
+    const subjectSelection =
+      document.getElementById("subject-selection");
+
+    const title =
+      document.getElementById("selector-title");
+
+    const description =
+      document.getElementById("selector-description");
+
+    const backButton =
+      document.getElementById("selector-back");
+
+    const path =
+      document.getElementById("selection-path");
+
+
+    /* =========================================================
+       STATE
+       ========================================================= */
+
+    let selectedYear = null;
+    let selectedSemester = null;
+
+
+    /* =========================================================
+       YEAR CLICK
+       ========================================================= */
+
+    document
+      .querySelectorAll("[data-year]")
+      .forEach(card => {
+
+        card.addEventListener("click", function () {
+
+          selectedYear =
+            Number(this.dataset.year);
+
+          selectedSemester = null;
+
+          showSemesters(selectedYear);
+        });
+
+      });
+
+
+    /* =========================================================
+       SHOW SEMESTERS
+       ========================================================= */
+
+    function showSemesters(year) {
+
+      const yearData =
+        curriculum[year];
+
+      if (!yearData) {
+        console.error(
+          "No curriculum found for year:",
+          year
+        );
+        return;
+      }
+
+      yearSelection.classList.add("hidden");
+
+      semesterSelection.innerHTML = "";
+
+      semesterSelection.classList.remove("hidden");
+
+      subjectSelection.classList.add("hidden");
+
+      path.classList.add("hidden");
+
+      title.textContent =
+        yearData.name;
+
+      description.textContent =
+        "Choose your semester.";
+
+
+      Object.entries(yearData.semesters)
+        .forEach(([semesterNumber, semester]) => {
+
+          const card =
+            document.createElement("button");
+
+          card.type = "button";
+
+          card.className =
+            "selection-card";
+
+          card.innerHTML = `
+                    <div class="selection-icon">
+                        ${semesterNumber}
+                    </div>
+
+                    <div class="selection-info">
+                        <strong>
+                            ${semester.name}
+                        </strong>
+
+                        <span>
+                            ${semester.subjects.length} subjects
+                        </span>
+                    </div>
+
+                    <div class="selection-arrow">
+                        →
+                    </div>
+                `;
+
+
+          card.addEventListener(
+            "click",
+            function () {
+
+              selectedSemester =
+                Number(semesterNumber);
+
+              showSubjects(
+                year,
+                Number(semesterNumber)
+              );
+
+            }
+          );
+
+
+          semesterSelection.appendChild(card);
+
+        });
+
+
+      backButton.classList.remove("hidden");
+    }
+
+
+    /* =========================================================
+       SHOW SUBJECTS
+       ========================================================= */
+
+    function showSubjects(
+      year,
+      semesterNumber
+    ) {
+
+      const semester =
+        curriculum[year]
+          .semesters[semesterNumber];
+
+      if (!semester) {
+        console.error(
+          "Semester not found:",
+          year,
+          semesterNumber
+        );
+        return;
+      }
+
+
+      semesterSelection.classList.add("hidden");
+
+      subjectSelection.innerHTML = "";
+
+      subjectSelection.classList.remove("hidden");
+
+
+      title.textContent =
+        semester.name;
+
+      description.textContent =
+        "Choose a subject to explore its lectures.";
+
+
+      semester.subjects.forEach(function (subject) {
+
+        const card =
+          document.createElement("button");
+
+        card.type = "button";
+
+        card.className =
+          "selection-card";
+
+
+        card.innerHTML = `
+
+      <div class="selection-icon">
+        📚
+      </div>
+
+      <div class="selection-info">
+
+        <strong>
+          ${subject}
+        </strong>
+
+        <span>
+          View lectures →
+        </span>
+
+      </div>
+
+      <div class="selection-arrow">
+        →
+      </div>
+
+    `;
+
+
+        card.addEventListener(
+          "click",
+          function () {
+
+            filterLectures(
+              year,
+              semesterNumber,
+              subject
+            );
+
+          }
+        );
+
+
+        subjectSelection.appendChild(card);
+
+      });
+
+
+      updatePath(
+        year,
+        semesterNumber
+      );
+
+    }
+
+    /* =========================================================
+       FILTER LECTURES
+       ========================================================= */
+
+    function filterLectures(year, semesterNumber, subject) {
+
+      const lectureCards =
+        document.querySelectorAll(".video-card-public");
+
+      let visibleCount = 0;
+
+
+      /* ---------------------------------------------------------
+         Normalize numbers
+         2 / 2nd / 2nd Year → 2
+         4 / 4th / 4th Semester → 4
+         --------------------------------------------------------- */
+
+      function normalizeNumber(value) {
+
+        const match =
+          String(value || "").match(/\d+/);
+
+        return match ? match[0] : "";
+
+      }
+
+
+      /* ---------------------------------------------------------
+         Normalize subject names
+         --------------------------------------------------------- */
+
+      function normalizeSubject(value) {
+
+        let text =
+          String(value || "")
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, " ");
+
+
+        /*
+          Existing COA videos may have subject stored as "coa".
+          Treat that as the full subject name.
+        */
+
+        if (
+          text === "coa" ||
+          text === "c.o.a."
+        ) {
+          return "computer organization & architecture";
+        }
+
+
+        return text;
+
+      }
+
+
+      const selectedYear =
+        normalizeNumber(year);
+
+      const selectedSemester =
+        normalizeNumber(semesterNumber);
+
+      const selectedSubject =
+        normalizeSubject(subject);
+
+
+      lectureCards.forEach(function (card) {
+
+        const cardYear =
+          normalizeNumber(
+            card.dataset.year
+          );
+
+
+        const cardSemester =
+          normalizeNumber(
+            card.dataset.semester
+          );
+
+
+        const cardSubject =
+          normalizeSubject(
+            card.dataset.subject
+          );
+
+
+        const subjectMatches =
+          cardSubject === selectedSubject;
+
+
+        /*
+          Normally we require:
+          Year + Semester + Subject
+    
+          BUT if an old video doesn't have
+          year/semester saved yet, we allow
+          the subject match.
+    
+          This lets your existing videos
+          continue working.
+        */
+
+        const hasYearAndSemester =
+          cardYear !== "" &&
+          cardSemester !== "";
+
+
+        const yearSemesterMatches =
+          cardYear === selectedYear &&
+          cardSemester === selectedSemester;
+
+
+        const matches =
+          subjectMatches &&
+          (
+            !hasYearAndSemester ||
+            yearSemesterMatches
+          );
+
+
+        console.log(
+          "Lecture check:",
+          {
+            cardYear,
+            selectedYear,
+            cardSemester,
+            selectedSemester,
+            cardSubject,
+            selectedSubject,
+            matches
+          }
+        );
+
+
+        if (matches) {
+
+          card.style.display = "";
+
+          visibleCount++;
+
+        } else {
+
+          card.style.display = "none";
+
+        }
+
+      });
+
+
+      /* ---------------------------------------------------------
+         UPDATE HEADING
+         --------------------------------------------------------- */
+
+      const lectureHeading =
+        document.querySelector(
+          ".section-heading h2"
+        );
+
+
+      if (lectureHeading) {
+
+        lectureHeading.textContent =
+          subject;
+
+      }
+
+
+      /* ---------------------------------------------------------
+         UPDATE COUNT
+         --------------------------------------------------------- */
+
+      const resultCount =
+        document.querySelector(
+          ".result-count"
+        );
+
+
+      if (resultCount) {
+
+        resultCount.textContent =
+          `${visibleCount} lecture${visibleCount === 1
+            ? ""
+            : "s"
+          }`;
+
+      }
+
+
+      /* ---------------------------------------------------------
+         UPDATE BREADCRUMB
+         --------------------------------------------------------- */
+
+      updatePath(
+        year,
+        semesterNumber,
+        subject
+      );
+
+
+      /* ---------------------------------------------------------
+         SCROLL TO LECTURES
+         --------------------------------------------------------- */
+
+      const lectureSection =
+        document.querySelector(
+          ".section-heading"
+        );
+
+
+      if (lectureSection) {
+
+        lectureSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+
+      }
+
+    }
+
+    /* =========================================================
+       BREADCRUMB
+       ========================================================= */
+
+    function updatePath(
+      year,
+      semesterNumber,
+      subject = null
+    ) {
+
+      if (
+        !curriculum[year] ||
+        !curriculum[year].semesters[semesterNumber]
+      ) {
+        return;
+      }
+
+
+      const yearName =
+        curriculum[year].name;
+
+
+      const semesterName =
+        curriculum[year]
+          .semesters[semesterNumber]
+          .name;
+
+
+      path.innerHTML = `
+            <span>${yearName}</span>
+            <span>→</span>
+            <span>${semesterName}</span>
+            ${subject
+          ? `<span>→</span><span>${subject}</span>`
+          : ""
+        }
+        `;
+
+
+      path.classList.remove("hidden");
+    }
+
+
+    /* =========================================================
+       BACK BUTTON
+       ========================================================= */
+
+    backButton.addEventListener(
+      "click",
+      function () {
+
+        /* SUBJECT → SEMESTER */
+
+        if (
+          !subjectSelection
+            .classList
+            .contains("hidden")
+        ) {
+
+          subjectSelection
+            .classList
+            .add("hidden");
+
+          semesterSelection
+            .classList
+            .remove("hidden");
+
+
+          title.textContent =
+            curriculum[selectedYear].name;
+
+
+          description.textContent =
+            "Choose your semester.";
+
+
+          path.classList.add("hidden");
+
+          return;
+        }
+
+
+        /* SEMESTER → YEAR */
+
+        if (
+          !semesterSelection
+            .classList
+            .contains("hidden")
+        ) {
+
+          semesterSelection
+            .classList
+            .add("hidden");
+
+          yearSelection
+            .classList
+            .remove("hidden");
+
+
+          backButton
+            .classList
+            .add("hidden");
+
+
+          title.textContent =
+            "Choose your year";
+
+
+          description.textContent =
+            "Start by selecting your B.Tech year.";
+
+
+          path.classList.add("hidden");
+
+        }
+
+      }
+    );
+
+
+  });
+</script>
+
+{% endblock %}

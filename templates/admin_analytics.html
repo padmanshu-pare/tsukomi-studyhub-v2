@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics · TSUKOMI StudyHub{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+
+
+<div class="analytics-page">
+
+    <!-- =====================================================
+         HEADER
+         ====================================================== -->
+
+    <section class="analytics-header">
+
+        <div class="analytics-eyebrow">
+            TSUKOMI STUDYHUB · ADMIN
+        </div>
+
+        <h1>
+            Analytics
+            <span style="color:#ffd21c;">.</span>
+        </h1>
+
+        <p>
+            Track how students are watching lectures,
+            unlocking notes and engaging with StudyHub content.
+        </p>
+
+    </section>
+
+
+    <!-- =====================================================
+         STAT CARDS
+         ====================================================== -->
+
+    <section class="analytics-stats">
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                👥
+            </div>
+
+            <div class="stat-label">
+                Students
+            </div>
+
+            <div class="stat-value">
+                {{ unique_learners }}
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                👁️
+            </div>
+
+            <div class="stat-label">
+                Video Views
+            </div>
+
+            <div class="stat-value">
+                {{ total_views }}
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                ⏱️
+            </div>
+
+            <div class="stat-label">
+                Watch Time
+            </div>
+
+            <div class="stat-value">
+                {{ total_watch_minutes }}m
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                📄
+            </div>
+
+            <div class="stat-label">
+                Notes Downloads
+            </div>
+
+            <div class="stat-value">
+                {{ notes_downloads }}
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         COMPLETION RATE
+         ====================================================== -->
+
+    <section class="analytics-card completion-card">
+
+        <div class="analytics-card-header">
+
+            <h2>
+                📈 Completion Rate
+            </h2>
+
+            <span>
+                Notes Unlocks / Views
+            </span>
+
+        </div>
+
+        <div class="completion-body">
+
+            <div class="completion-number">
+                {{ completion_rate }}%
+            </div>
+
+            <div class="progress-fill" data-completion="{{ completion_rate }}"></div>
+
+            <div class="completion-caption">
+                Percentage of lecture views that reached
+                the required watch time and unlocked notes.
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         POPULAR SUBJECTS + LECTURES
+         ====================================================== -->
+
+    <section class="analytics-grid">
+
+
+        <!-- MOST WATCHED SUBJECTS -->
+
+        <div class="analytics-card">
+
+            <div class="analytics-card-header">
+
+                <h2>
+                    📚 Most Watched Subjects
+                </h2>
+
+                <span>
+                    TOP 10
+                </span>
+
+            </div>
+
+
+            <div class="analytics-card-body">
+
+                {% if subject_stats %}
+
+                {% for subject in subject_stats %}
+
+                <div class="analytics-row">
+
+                    <div class="rank">
+                        {{ loop.index }}
+                    </div>
+
+                    <div class="row-info">
+
+                        <div class="row-title">
+
+                            {{ subject._id or "Unknown Subject" }}
+
+                        </div>
+
+                        <div class="row-subtitle">
+                            Lecture views
+                        </div>
+
+                    </div>
+
+                    <div class="row-value">
+                        {{ subject.views }}
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+                {% else %}
+
+                <div class="analytics-empty">
+                    No subject analytics available yet.
+                </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <!-- MOST POPULAR LECTURES -->
+
+        <div class="analytics-card">
+
+            <div class="analytics-card-header">
+
+                <h2>
+                    🔥 Most Popular Lectures
+                </h2>
+
+                <span>
+                    TOP 10
+                </span>
+
+            </div>
+
+
+            <div class="analytics-card-body">
+
+                {% if lecture_stats %}
+
+                {% for lecture in lecture_stats %}
+
+                <div class="analytics-row">
+
+                    <div class="rank">
+                        {{ loop.index }}
+                    </div>
+
+                    <div class="row-info">
+
+                        <div class="row-title">
+
+                            {{ lecture._id.title or "Untitled Lecture" }}
+
+                        </div>
+
+                        <div class="row-subtitle">
+                            Video views
+                        </div>
+
+                    </div>
+
+                    <div class="row-value">
+                        {{ lecture.views }}
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+                {% else %}
+
+                <div class="analytics-empty">
+                    No lecture analytics available yet.
+                </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const progressBar = document.querySelector(".progress-fill");
+
+        if (!progressBar) {
+            return;
+        }
+
+        const completion = parseFloat(
+            progressBar.dataset.completion || "0"
+        );
+
+        const safeCompletion = Math.max(
+            0,
+            Math.min(100, completion)
+        );
+
+        progressBar.style.width = safeCompletion + "%";
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const progressBar = document.querySelector(".progress-fill");
+
+        if (!progressBar) {
+            return;
+        }
+
+        const completion = parseFloat(
+            progressBar.dataset.completion || "0"
+        );
+
+        const safeCompletion = Math.max(
+            0,
+            Math.min(100, completion)
+        );
+
+        progressBar.style.width = safeCompletion + "%";
+    });
+</script>
+
+{% endblock %}

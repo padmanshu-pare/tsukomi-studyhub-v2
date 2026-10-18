@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>{{ video.title }} · TSUKOMI StudyHub</title>
+
+  <style>
+    :root {
+      --bg: #07090d;
+      --card: #10141c;
+      --card-2: #151a24;
+      --text: #f7f8fb;
+      --muted: #9ca6b7;
+      --border: #252c39;
+
+      --accent: #ff3f76;
+      --accent-2: #7c5cff;
+
+      --success: #35d49b;
+      --danger: #ff5c70;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+
+      font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+      color: var(--text);
+
+      background:
+        radial-gradient(circle at 15% 0%,
+          rgba(124, 92, 255, 0.16),
+          transparent 30%),
+
+        radial-gradient(circle at 85% 0%,
+          rgba(255, 63, 118, 0.12),
+          transparent 28%),
+
+        var(--bg);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .container {
+      width: min(1000px, 92%);
+      margin: auto;
+    }
+
+    /* =========================================================
+       HEADER
+       ========================================================= */
+
+    header {
+      height: 74px;
+
+      border-bottom:
+        1px solid rgba(255, 255, 255, 0.06);
+
+      background:
+        rgba(7, 9, 13, 0.82);
+
+      backdrop-filter: blur(14px);
+
+      display: flex;
+      align-items: center;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      font-weight: 950;
+      letter-spacing: .5px;
+    }
+
+    .brand span {
+      color: var(--accent);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 20px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .nav-links a:hover {
+      color: white;
+    }
+
+    /* =========================================================
+       MAIN
+       ========================================================= */
+
+    main {
+      padding: 50px 0 80px;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+
+      text-transform: uppercase;
+
+      font-weight: 850;
+
+      letter-spacing: 1.5px;
+
+      font-size: .75rem;
+
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+
+      line-height: 1.05;
+
+      letter-spacing: -2px;
+
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+
+      max-width: 760px;
+
+      margin-bottom: 28px;
+
+      line-height: 1.6;
+    }
+
+    /* =========================================================
+       VIDEO
+       ========================================================= */
+
+    .video-card {
+      background: var(--card);
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 22px;
+
+      overflow: hidden;
+
+      box-shadow:
+        0 25px 70px rgba(0, 0, 0, .35);
+    }
+
+    #player-wrapper {
+      width: 100%;
+
+      aspect-ratio: 16 / 9;
+
+      background: #000;
+
+      position: relative;
+    }
+
+    #player {
+      width: 100%;
+      height: 100%;
+    }
+
+    .loading {
+      position: absolute;
+
+      inset: 0;
+
+      display: grid;
+
+      place-items: center;
+
+      background: #000;
+
+      color: var(--muted);
+
+      z-index: 2;
+    }
+
+    .loading.hidden {
+      display: none;
+    }
+
+    /* =========================================================
+       CONTROLS
+       ========================================================= */
+
+    .controls-area {
+      padding: 22px;
+    }
+
+    .time-row {
+      display: flex;
+
+      justify-content: space-between;
+
+      color: var(--muted);
+
+      font-size: .85rem;
+
+      margin-bottom: 8px;
+    }
+
+    .progress-track {
+      height: 12px;
+
+      width: 100%;
+
+      background: #252b36;
+
+      border-radius: 999px;
+
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+
+      width: 0%;
+
+      background:
+        linear-gradient(90deg,
+          var(--accent),
+          var(--accent-2));
+
+      border-radius: inherit;
+
+      transition: width .15s linear;
+    }
+
+    .status {
+      margin-top: 18px;
+
+      padding: 14px 15px;
+
+      border-radius: 13px;
+
+      background: var(--card-2);
+
+      border:
+        1px solid var(--border);
+
+      color: var(--muted);
+
+      font-size: .92rem;
+    }
+
+    .status.success {
+      border-color:
+        rgba(53, 212, 155, .35);
+
+      color: #b7f5df;
+
+      background:
+        rgba(53, 212, 155, .07);
+    }
+
+    .status.warning {
+      border-color:
+        rgba(255, 92, 112, .3);
+
+      color: #ffc0c8;
+
+      background:
+        rgba(255, 92, 112, .06);
+    }
+
+    /* =========================================================
+       START BOX
+       ========================================================= */
+
+    .start-box {
+      margin-top: 18px;
+
+      display: none;
+
+      text-align: center;
+
+      padding: 18px;
+
+      border-radius: 15px;
+
+      background: var(--card-2);
+
+      border:
+        1px solid var(--border);
+    }
+
+    .start-box.show {
+      display: block;
+    }
+
+    .start-box p {
+      color: var(--muted);
+
+      margin-bottom: 12px;
+
+      font-size: .9rem;
+    }
+
+    .start-btn {
+      border: 0;
+
+      color: white;
+
+      background: var(--accent);
+
+      padding: 11px 18px;
+
+      border-radius: 11px;
+
+      font-weight: 850;
+    }
+
+    .start-btn:hover {
+      filter: brightness(1.08);
+
+      transform: translateY(-1px);
+    }
+
+    /* =========================================================
+       UNLOCK
+       ========================================================= */
+
+    .unlock {
+      margin-top: 18px;
+
+      display: none;
+
+      align-items: center;
+
+      justify-content: space-between;
+
+      gap: 18px;
+
+      padding: 18px;
+
+      border:
+        1px solid rgba(53, 212, 155, .3);
+
+      background:
+        rgba(53, 212, 155, .06);
+
+      border-radius: 15px;
+    }
+
+    .unlock.show {
+      display: flex;
+    }
+
+    .unlock h2 {
+      font-size: 1.1rem;
+
+      margin-bottom: 4px;
+    }
+
+    .unlock p {
+      color: var(--muted);
+
+      font-size: .85rem;
+    }
+
+    .download-btn {
+      border: 0;
+
+      color: white;
+
+      background: var(--accent);
+
+      padding: 11px 16px;
+
+      border-radius: 11px;
+
+      font-weight: 850;
+
+      white-space: nowrap;
+    }
+
+    .download-btn:hover {
+      filter: brightness(1.08);
+
+      transform: translateY(-1px);
+    }
+
+    /* =========================================================
+       VIDEO INFO
+       ========================================================= */
+
+    .video-meta {
+      display: flex;
+
+      flex-wrap: wrap;
+
+      gap: 8px;
+
+      margin-top: 18px;
+    }
+
+    .meta-pill {
+      padding: 7px 11px;
+
+      border-radius: 999px;
+
+      background: var(--card);
+
+      border:
+        1px solid var(--border);
+
+      color: var(--muted);
+
+      font-size: .78rem;
+    }
+
+    .info-grid {
+      margin-top: 22px;
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 14px;
+    }
+
+    .info-card {
+      background: var(--card);
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 16px;
+
+      padding: 18px;
+    }
+
+    .info-card b {
+      display: block;
+
+      margin-bottom: 5px;
+    }
+
+    .info-card span {
+      color: var(--muted);
+
+      font-size: .83rem;
+
+      line-height: 1.5;
+    }
+
+    /* =========================================================
+       FOOTER
+       ========================================================= */
+
+    footer {
+      border-top:
+        1px solid var(--border);
+
+      padding: 25px 0;
+
+      color: var(--muted);
+
+      font-size: .8rem;
+
+      text-align: center;
+    }
+
+    /* =========================================================
+       MOBILE
+       ========================================================= */
+
+    @media (max-width: 700px) {
+
+      h1 {
+        font-size: 2rem;
+
+        letter-spacing: -1px;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .unlock {
+        align-items: stretch;
+
+        flex-direction: column;
+      }
+
+      .download-btn {
+        width: 100%;
+
+        text-align: center;
+      }
+
+      .nav-links {
+        gap: 10px;
+
+        font-size: .78rem;
+      }
+
+    }
+    .related-lectures { margin-top: 42px; }
+    .related-lectures h2 { margin-bottom: 18px; }
+    .related-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .related-card { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid rgba(255,255,255,.1); border-radius: 12px; background: rgba(255,255,255,.03); transition: transform .2s, border-color .2s; }
+    .related-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+    .related-card img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; }
+    .related-card span { color: var(--accent); font-size: .75rem; font-weight: 700; }
+    .related-card strong { font-size: .9rem; line-height: 1.35; }
+    @media (max-width: 700px) { .related-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body data-video-id="{{ video.youtube_id }}" data-notes-url="{{ video.notes_url }}" data-video-db-id="{{ video._id }}"
+  data-required-watch-seconds="{{ required_watch_seconds }}">
+
+  <!-- =========================================================
+       HEADER
+       ========================================================= -->
+
+  <header>
+
+    <div class="container nav">
+
+      <a class="brand" href="{{ url_for('home') }}">
+        TSUKOMI
+        <span>PADHAYEGA</span>
+      </a>
+
+      <nav class="nav-links">
+
+        <a href="{{ url_for('home') }}">
+          StudyHub
+        </a>
+
+        <a href="{{ url_for('admin_dashboard') }}">
+          Admin
+        </a>
+
+      </nav>
+
+    </div>
+
+  </header>
+
+
+  <!-- =========================================================
+       MAIN
+       ========================================================= -->
+
+  <main>
+
+    <div class="container">
+
+      <div class="eyebrow">
+        Video Companion
+      </div>
+
+      <h1>
+        {{ video.title }}
+      </h1>
+
+      <p class="subtitle">
+
+        {{ video.description
+        or
+        "Watch the lecture to unlock your notes."
+        }}
+
+        <br>
+
+        After
+        <strong>
+          {{ required_watch_seconds }} seconds
+        </strong>
+        of actual playback, your notes will unlock.
+
+      </p>
+
+
+      <!-- =====================================================
+           VIDEO
+           ===================================================== -->
+
+      <section class="video-card">
+
+        <div id="player-wrapper">
+
+          <div id="player"></div>
+
+          <div id="loading" class="loading">
+            Loading lecture...
+          </div>
+
+        </div>
+
+
+        <div class="controls-area">
+
+          <div class="time-row">
+
+            <span id="currentTime">
+              00:00
+            </span>
+
+            <span id="duration">
+              00:00
+            </span>
+
+          </div>
+
+
+          <div class="progress-track">
+
+            <div id="progressFill" class="progress-fill"></div>
+
+          </div>
+
+
+          <div id="status" class="status">
+            Preparing the lecture...
+          </div>
+
+
+          <div id="startBox" class="start-box">
+
+            <p>
+              Your browser blocked autoplay.
+              Click below to start the lecture.
+            </p>
+
+            <button id="startButton" class="start-btn">
+              ▶ Start Lecture
+            </button>
+
+          </div>
+
+
+          <!-- =================================================
+               UNLOCK BOX
+               ================================================= -->
+
+          <div id="unlockBox" class="unlock">
+
+            <div>
+
+              <h2>
+                🎉 Lecture completed
+              </h2>
+
+              <p>
+                Your notes are now unlocked.
+              </p>
+
+            </div>
+
+            <a id="downloadButton" class="download-btn" href="#" target="_blank" rel="noopener">
+              📄 Download Notes
+            </a>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           VIDEO META
+           ===================================================== -->
+
+      <div class="video-meta">
+
+        {% if video.year %}
+        <span class="meta-pill">
+          🎓 Year {{ video.year }}
+        </span>
+        {% endif %}
+
+        {% if video.semester %}
+        <span class="meta-pill">
+          📚 Semester {{ video.semester }}
+        </span>
+        {% endif %}
+
+        {% if video.subject %}
+        <span class="meta-pill">
+          📖 {{ video.subject }}
+        </span>
+        {% endif %}
+
+        {% if video.unit %}
+        <span class="meta-pill">
+          📌 Unit {{ video.unit }}
+        </span>
+        {% endif %}
+
+      </div>
+
+
+      <!-- =====================================================
+           INFO
+           ===================================================== -->
+
+      <div class="info-grid">
+
+        <div class="info-card">
+
+          <b>
+            🎬 YouTube Lecture
+          </b>
+
+          <span>
+            The lecture plays through
+            the official YouTube embedded player.
+          </span>
+
+        </div>
+
+
+        <div class="info-card">
+
+          <b>
+            📈 Live Progress
+          </b>
+
+          <span>
+            Your progress is counted only
+            while the lecture is actually playing.
+          </span>
+
+        </div>
+
+
+        <div class="info-card">
+
+          <b>
+            🔓 Notes Unlock
+          </b>
+
+          <span>
+            Complete the required watch time
+            to unlock your notes.
+          </span>
+
+        </div>
+
+      </div>
+
+      {% if related_videos %}
+      <section class="related-lectures" aria-labelledby="related-heading">
+        <p class="eyebrow">KEEP LEARNING</p>
+        <h2 id="related-heading">Related lectures</h2>
+        <div class="related-grid">
+          {% for related in related_videos %}
+          <a class="related-card" href="{{ url_for('watch', slug=related.slug) }}">
+            <img src="https://img.youtube.com/vi/{{ related.youtube_id }}/mqdefault.jpg" alt="{{ related.title }} thumbnail" loading="lazy">
+            <span>{{ related.unit or 'Lecture' }}</span>
+            <strong>{{ related.title }}</strong>
+          </a>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+    </div>
+
+  </main>
+
+
+  <footer>
+
+    © 2026 TSUKOMI PADHAYEGA · StudyHub
+
+  </footer>
+
+
+  <!-- =========================================================
+       YOUTUBE IFRAME API
+       ========================================================= -->
+
+  <script>
+
+    /*
+    =============================================================
+    DATABASE VALUES
+    =============================================================
+    */
+
+    const VIDEO_ID =
+      document.body.dataset.videoId || "";
+
+    const NOTES_URL =
+      document.body.dataset.notesUrl || "";
+
+    const VIDEO_DB_ID =
+      document.body.dataset.videoDbId || "";
+
+    const REQUIRED_WATCH_SECONDS =
+      Number(
+        document.body.dataset.requiredWatchSeconds || 120
+      );
+
+
+    /*
+    =============================================================
+    GLOBALS
+    =============================================================
+    */
+
+    let player = null;
+
+    let progressTimer = null;
+
+    let duration = 0;
+
+    let watchedSeconds = 0;
+
+    let lastPlayerTime = 0;
+
+    let lastTick = 0;
+
+    let completed = false;
+
+    let watchSessionStarted = false;
+
+
+    /*
+    =============================================================
+    ELEMENTS
+    =============================================================
+    */
+
+    const currentTimeEl =
+      document.getElementById("currentTime");
+
+    const durationEl =
+      document.getElementById("duration");
+
+    const progressFill =
+      document.getElementById("progressFill");
+
+    const statusEl =
+      document.getElementById("status");
+
+    const unlockBox =
+      document.getElementById("unlockBox");
+
+    const downloadButton =
+      document.getElementById("downloadButton");
+
+    const startBox =
+      document.getElementById("startBox");
+
+    const startButton =
+      document.getElementById("startButton");
+
+    const loading =
+      document.getElementById("loading");
+
+
+    /*
+    =============================================================
+    START SERVER WATCH SESSION
+    =============================================================
+    */
+
+    async function startWatchSession() {
+
+      if (watchSessionStarted) {
+        return true;
+      }
+
+      try {
+
+        const response =
+          await fetch(
+            `/api/watch/${VIDEO_DB_ID}/start`,
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              credentials: "same-origin"
+            }
+          );
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            "Could not start watch session."
+          );
+
+        }
+
+
+        const data =
+          await response.json();
+
+
+        if (!data.ok) {
+
+          throw new Error(
+            data.error ||
+            "Watch session failed."
+          );
+
+        }
+
+
+        watchSessionStarted = true;
+
+        return true;
+
+      }
+
+      catch (error) {
+
+        console.error(error);
+
+        statusEl.textContent =
+          "Unable to start the watch session.";
+
+        statusEl.classList.add(
+          "warning"
+        );
+
+        return false;
+
+      }
+
+    }
+
+
+    /*
+    =============================================================
+    SEND PROGRESS TO BACKEND
+    =============================================================
+    */
+
+    async function sendProgress(videoEnded = false) {
+
+      if (!watchSessionStarted) {
+        return;
+      }
+
+      try {
+
+        const response =
+          await fetch(
+            `/api/watch/${VIDEO_DB_ID}/progress`,
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              credentials: "same-origin",
+
+              body: JSON.stringify({
+                watched_seconds:
+                  watchedSeconds,
+                video_ended: Boolean(videoEnded)
+              })
+            }
+          );
+
+
+        if (!response.ok) {
+          return;
+        }
+
+
+        const data =
+          await response.json();
+
+
+        if (
+          data.unlocked &&
+          !completed
+        ) {
+
+          unlockNotes(data);
+
+        }
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "Progress sync failed:",
+          error
+        );
+
+      }
+
+    }
+
+
+    /*
+    =============================================================
+    UNLOCK THROUGH BACKEND
+    =============================================================
+    */
+
+    async function requestUnlock(videoEnded = false) {
+
+      try {
+
+        const response =
+          await fetch(
+            `/api/watch/${VIDEO_DB_ID}/unlock`,
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              credentials: "same-origin",
+
+              body: JSON.stringify({
+                video_ended: Boolean(videoEnded)
+              })
+            }
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (
+          response.ok &&
+          data.unlocked
+        ) {
+
+          unlockNotes(data);
+
+        }
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "Unlock request failed:",
+          error
+        );
+
+      }
+
+    }
+
+
+    /*
+    =============================================================
+    YOUTUBE API CALLBACK
+    =============================================================
+    */
+
+    window.onYouTubeIframeAPIReady =
+      function () {
+
+        if (!VIDEO_ID) {
+
+          loading.textContent =
+            "YouTube video is not configured.";
+
+          statusEl.textContent =
+            "This lecture does not have a valid YouTube video.";
+
+          statusEl.classList.add(
+            "warning"
+          );
+
+          return;
+
+        }
+
+
+        player =
+          new YT.Player(
+            "player",
+            {
+
+              videoId: VIDEO_ID,
+
+              playerVars: {
+
+                autoplay: 0,
+
+                playsinline: 1,
+
+                controls: 1,
+
+                rel: 0,
+
+                modestbranding: 1,
+
+                iv_load_policy: 3,
+
+                enablejsapi: 1
+
+              },
+
+              events: {
+
+                onReady:
+                  onPlayerReady,
+
+                onStateChange:
+                  onPlayerStateChange,
+
+                onError:
+                  onPlayerError
+
+              }
+
+            }
+          );
+
+      };
+
+
+    /*
+    =============================================================
+    PLAYER READY
+    =============================================================
+    */
+
+    function onPlayerReady(event) {
+
+      loading.classList.add(
+        "hidden"
+      );
+
+
+      duration =
+        event.target.getDuration();
+
+
+      durationEl.textContent =
+        formatTime(duration);
+
+
+      statusEl.textContent =
+        "Lecture ready. Click Play to start watching.";
+
+
+      updateProgress();
+
+    }
+
+
+    /*
+    =============================================================
+    PLAYER STATE
+    =============================================================
+    */
+
+    async function onPlayerStateChange(event) {
+
+
+      if (!player) {
+        return;
+      }
+
+
+      /*
+      PLAYING
+      */
+
+      if (
+        event.data ===
+        YT.PlayerState.PLAYING
+      ) {
+
+        const sessionStarted =
+          await startWatchSession();
+
+
+        if (!sessionStarted) {
+
+          player.pauseVideo();
+
+          return;
+
+        }
+
+
+        startBox.classList.remove(
+          "show"
+        );
+
+
+        statusEl.textContent =
+          "▶ Lecture is playing. Your watch time is being counted.";
+
+
+        statusEl.classList.remove(
+          "warning"
+        );
+
+
+        lastPlayerTime =
+          player.getCurrentTime();
+
+
+        lastTick =
+          performance.now();
+
+
+        startProgressMonitor();
+
+      }
+
+
+      /*
+      PAUSED
+      */
+
+      else if (
+        event.data ===
+        YT.PlayerState.PAUSED
+      ) {
+
+        stopProgressMonitor();
+
+
+        statusEl.textContent =
+          "⏸ Lecture paused. Watch time is paused too.";
+
+      }
+
+
+      /*
+      ENDED
+      */
+
+      else if (
+        event.data ===
+        YT.PlayerState.ENDED
+      ) {
+
+        stopProgressMonitor();
+
+
+        watchedSeconds =
+          Math.max(
+            watchedSeconds,
+            REQUIRED_WATCH_SECONDS
+          );
+
+
+        updateProgress();
+
+
+        await sendProgress(true);
+
+
+        await requestUnlock(true);
+
+      }
+
+    }
+
+
+    /*
+    =============================================================
+    PROGRESS MONITOR
+    =============================================================
+    */
+
+    function startProgressMonitor() {
+
+      if (
+        progressTimer ||
+        !player
+      ) {
+
+        return;
+
+      }
+
+
+      lastPlayerTime =
+        player.getCurrentTime();
+
+
+      lastTick =
+        performance.now();
+
+
+      progressTimer =
+        setInterval(
+          trackPlayback,
+          500
+        );
+
+    }
+
+
+    function stopProgressMonitor() {
+
+      if (progressTimer) {
+
+        clearInterval(
+          progressTimer
+        );
+
+        progressTimer = null;
+
+      }
+
+    }
+
+
+    function trackPlayback() {
+
+      if (
+        !player ||
+        completed
+      ) {
+
+        return;
+
+      }
+
+
+      if (
+        player.getPlayerState() !==
+        YT.PlayerState.PLAYING
+      ) {
+
+        return;
+
+      }
+
+
+      const current =
+        player.getCurrentTime();
+
+
+      const now =
+        performance.now();
+
+
+      const realElapsed =
+        (now - lastTick) / 1000;
+
+
+      const playerElapsed =
+        current - lastPlayerTime;
+
+
+      /*
+      Only count normal playback.
+
+      Large forward seeks are NOT counted.
+      */
+
+      const tolerance = 1.2;
+
+
+      if (
+        playerElapsed >= 0 &&
+        playerElapsed <=
+        realElapsed + tolerance
+      ) {
+
+        watchedSeconds +=
+          Math.min(
+            playerElapsed,
+            realElapsed + 0.25
+          );
+
+      }
+
+
+      lastPlayerTime =
+        current;
+
+
+      lastTick =
+        now;
+
+
+      watchedSeconds =
+        Math.min(
+          watchedSeconds,
+          duration
+        );
+
+
+      updateProgress();
+
+
+      /*
+      Sync with backend approximately
+      every heartbeat.
+      */
+
+      sendProgress();
+
+
+      /*
+      Unlock after required time.
+      */
+
+      if (
+        watchedSeconds >=
+        REQUIRED_WATCH_SECONDS
+      ) {
+
+        requestUnlock();
+
+      }
+
+    }
+
+
+    /*
+    =============================================================
+    UPDATE UI
+    =============================================================
+    */
+
+    function updateProgress() {
+
+      if (!duration) {
+        return;
+      }
+
+
+      const percentage =
+        Math.min(
+          100,
+          (
+            watchedSeconds /
+            duration
+          ) * 100
+        );
+
+
+      progressFill.style.width =
+        percentage + "%";
+
+
+      currentTimeEl.textContent =
+        formatTime(watchedSeconds);
+
+
+      durationEl.textContent =
+        formatTime(duration);
+
+
+      if (!completed) {
+
+        const remaining =
+          Math.max(
+            0,
+            REQUIRED_WATCH_SECONDS -
+            watchedSeconds
+          );
+
+
+        statusEl.textContent =
+          "Watch " +
+          formatTime(REQUIRED_WATCH_SECONDS) +
+          " to unlock your notes. " +
+          "Watched: " +
+          formatTime(watchedSeconds) +
+          " · Remaining: " +
+          formatTime(remaining);
+
+      }
+
+    }
+
+
+    /*
+    =============================================================
+    UNLOCK UI
+    =============================================================
+    */
+
+    function unlockNotes(data) {
+
+      if (completed) {
+        return;
+      }
+
+
+      completed = true;
+
+
+      watchedSeconds =
+        Math.max(
+          watchedSeconds,
+          REQUIRED_WATCH_SECONDS
+        );
+
+
+      updateProgress();
+
+
+      stopProgressMonitor();
+
+
+      statusEl.classList.remove(
+        "warning"
+      );
+
+
+      statusEl.classList.add(
+        "success"
+      );
+
+
+      /*
+      Verify if this video has a valid notes link (Requirement 5)
+      */
+      const notesUrl = (document.body.dataset.notesUrl || "").trim();
+      const hasValidNotes = Boolean(
+        (data && data.has_drive_link) ||
+        (notesUrl && (notesUrl.includes("drive.google.com") || notesUrl.startsWith("http")))
+      );
+
+      if (hasValidNotes) {
+        statusEl.textContent =
+          "✅ Lecture completed. Your notes are unlocked.";
+
+        // Open the lecture's Google Drive file directly after it is unlocked.
+        // This avoids returning the student to the lecture page through a
+        // server-side redirect.
+        downloadButton.href = notesUrl;
+
+        downloadButton.style.display = "inline-flex";
+
+        unlockBox.classList.add(
+          "show"
+        );
+      } else {
+        statusEl.textContent =
+          "✅ Lecture completed! (No notes link was attached in this video's description).";
+
+        downloadButton.style.display = "none";
+
+        const textEl = unlockBox.querySelector("p");
+        if (textEl) {
+          textEl.textContent = "Notes for this lecture have not been linked yet.";
+        }
+
+        unlockBox.classList.add(
+          "show"
+        );
+      }
+
+    }
+
+
+    /*
+    =============================================================
+    START BUTTON
+    =============================================================
+    */
+
+    startButton.addEventListener(
+      "click",
+      function () {
+
+        if (!player) {
+          return;
+        }
+
+
+        player.playVideo();
+
+      }
+    );
+
+
+    /*
+    =============================================================
+    YOUTUBE ERROR
+    =============================================================
+    */
+
+    function onPlayerError(event) {
+
+      loading.classList.remove(
+        "hidden"
+      );
+
+
+      loading.textContent =
+        "This YouTube video could not be loaded.";
+
+
+      statusEl.textContent =
+        "YouTube player error: " +
+        event.data;
+
+
+      statusEl.classList.add(
+        "warning"
+      );
+
+    }
+
+
+    /*
+    =============================================================
+    TIME FORMAT
+    =============================================================
+    */
+
+    function formatTime(seconds) {
+
+      seconds =
+        Math.max(
+          0,
+          Math.floor(
+            seconds || 0
+          )
+        );
+
+
+      const minutes =
+        Math.floor(
+          seconds / 60
+        );
+
+
+      const remainingSeconds =
+        seconds % 60;
+
+
+      return (
+        String(minutes)
+          .padStart(2, "0") +
+        ":" +
+        String(remainingSeconds)
+          .padStart(2, "0")
+      );
+
+    }
+
+  </script>
+
+
+  <!-- Load YouTube API AFTER our callback exists -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+
+</body>
+
+</html>
