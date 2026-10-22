@@ -75,11 +75,11 @@
       </p>
 
       <h2 id="selector-title">
-        Browse by year
+        Choose your year
       </h2>
 
       <p id="selector-description">
-        Choose a year, semester, and subject to view its published lectures.
+        Start by selecting your B.Tech year.
       </p>
 
     </div>
@@ -94,18 +94,98 @@
   <!-- STEP 1 : YEAR -->
 
   <div id="year-selection" class="selection-grid">
-    {% for year_group in subject_catalog %}
-    <button class="selection-card" data-year="{{ year_group.number }}" type="button">
-      <div class="selection-icon">{{ "%02d"|format(year_group.number) }}</div>
-      <div class="selection-info">
-        <strong>{{ year_group.year }}</strong>
-        <span>{{ year_group.semesters|length }} semesters with published videos</span>
+
+    <button class="selection-card" data-year="1" type="button">
+
+      <div class="selection-icon">
+        01
       </div>
-      <div class="selection-arrow">→</div>
+
+      <div class="selection-info">
+
+        <strong>1st Year</strong>
+
+        <span>
+          Semester 1 & 2
+        </span>
+
+      </div>
+
+      <div class="selection-arrow">
+        →
+      </div>
+
     </button>
-    {% else %}
-    <p class="empty-catalog">Published videos with year and semester details will appear here.</p>
-    {% endfor %}
+
+
+    <button class="selection-card" data-year="2" type="button">
+
+      <div class="selection-icon">
+        02
+      </div>
+
+      <div class="selection-info">
+
+        <strong>2nd Year</strong>
+
+        <span>
+          Semester 3 & 4
+        </span>
+
+      </div>
+
+      <div class="selection-arrow">
+        →
+      </div>
+
+    </button>
+
+
+    <button class="selection-card" data-year="3" type="button">
+
+      <div class="selection-icon">
+        03
+      </div>
+
+      <div class="selection-info">
+
+        <strong>3rd Year</strong>
+
+        <span>
+          Semester 5 & 6
+        </span>
+
+      </div>
+
+      <div class="selection-arrow">
+        →
+      </div>
+
+    </button>
+
+
+    <button class="selection-card" data-year="4" type="button">
+
+      <div class="selection-icon">
+        04
+      </div>
+
+      <div class="selection-info">
+
+        <strong>4th Year</strong>
+
+        <span>
+          Semester 7 & 8
+        </span>
+
+      </div>
+
+      <div class="selection-arrow">
+        →
+      </div>
+
+    </button>
+
   </div>
 
 
@@ -133,7 +213,7 @@
      LECTURES
      ============================================================ -->
 
-<div class="section-heading" id="lectures">
+<div class="section-heading">
 
   <div>
 
@@ -143,7 +223,7 @@
 
     <h2>
       {{ "Search Results"
-      if (query or selected_subject or selected_year or selected_semester or selected_unit)
+      if (query or selected_subject or selected_unit)
       else "Latest Lectures" }}
     </h2>
 
@@ -153,7 +233,7 @@
 
     {{ total_videos }}
 
-    lecture{% if total_videos != 1 %}s{% endif %}
+    lecture{% if videos|length != 1 %}s{% endif %}
 
   </span>
 
@@ -161,12 +241,12 @@
 
 {% if total_pages > 1 %}
 <nav class="pagination" aria-label="Lecture pages">
-  {% if pagination_urls.previous %}
-  <a href="{{ pagination_urls.previous }}#lectures">← Previous</a>
+  {% if page > 1 %}
+  <a href="{{ url_for('home', q=query, subject=selected_subject, year=selected_year, semester=selected_semester, unit=selected_unit, page=page - 1) }}">← Previous</a>
   {% endif %}
   <span>Page {{ page }} of {{ total_pages }}</span>
-  {% if pagination_urls.next %}
-  <a href="{{ pagination_urls.next }}#lectures">Next →</a>
+  {% if page < total_pages %}
+  <a href="{{ url_for('home', q=query, subject=selected_subject, year=selected_year, semester=selected_semester, unit=selected_unit, page=page + 1) }}">Next →</a>
   {% endif %}
 </nav>
 {% endif %}
@@ -196,7 +276,7 @@
       <div class="meta-row">
 
         <span class="pill">
-          {{ video.semester or "Semester not set" }}
+          {{ video.unit or "Lecture" }}
         </span>
 
         {% if video.subject %}
@@ -208,13 +288,6 @@
         {% endif %}
 
       </div>
-
-      {% if video.unit or video.year %}
-      <div class="meta-row">
-        {% if video.unit %}<span class="pill">{{ video.unit }}</span>{% endif %}
-        {% if video.year %}<span class="meta-subject">{{ video.year }}</span>{% endif %}
-      </div>
-      {% endif %}
 
 
       <h3>
@@ -276,20 +349,123 @@
 <script>
   document.addEventListener("DOMContentLoaded", function () {
 
-    const catalog = {{ subject_catalog | tojson }};
-    const curriculum = Object.fromEntries(catalog.map(year => [
-      year.number,
-      {
-        name: year.year,
-        semesters: Object.fromEntries(year.semesters.map(semester => [
-          semester.number,
-          {
-            name: semester.name,
-            subjects: semester.subjects.map(subject => subject.name)
+    /* =========================================================
+       CURRICULUM
+       ========================================================= */
+
+    const curriculum = {
+      1: {
+        name: "1st Year",
+        semesters: {
+          1: {
+            name: "1st Semester",
+            subjects: [
+              "Engineering Chemistry",
+              "Basic Electrical & Electronics Engineering",
+              "Mathematics-I",
+              "Engineering Graphics",
+              "English"
+            ]
+          },
+          2: {
+            name: "2nd Semester",
+            subjects: [
+              "Engineering Physics",
+              "Mathematics-II",
+              "Basic Mechanical Engineering",
+              "Basic Civil Engineering & Engineering Mechanics",
+              "Basic Computer Engineering",
+              "Language Lab & Seminars"
+            ]
           }
-        ]))
+        }
+      },
+
+      2: {
+        name: "2nd Year",
+        semesters: {
+          3: {
+            name: "3rd Semester",
+            subjects: [
+              "Subject 1",
+              "Subject 2",
+              "Subject 3",
+              "Subject 4",
+              "Subject 5",
+              "Subject 6"
+            ]
+          },
+
+          4: {
+            name: "4th Semester",
+            subjects: [
+              "Mathematics-III",
+              "Analysis & Design of Algorithms",
+              "Software Engineering",
+              "Computer Organization & Architecture",
+              "Operating Systems",
+              "Programming Practices"
+            ]
+          }
+        }
+      },
+
+      3: {
+        name: "3rd Year",
+        semesters: {
+          5: {
+            name: "5th Semester",
+            subjects: [
+              "Database Management Systems (DBMS)",
+              "Theory of Computation (TOC)",
+              "Internet and Web Technology (IWT)",
+              "Cyber Security"
+            ]
+          },
+
+          6: {
+            name: "6th Semester",
+            subjects: [
+              "Subject 1",
+              "Subject 2",
+              "Subject 3",
+              "Subject 4",
+              "Subject 5",
+              "Subject 6"
+            ]
+          }
+        }
+      },
+
+      4: {
+        name: "4th Year",
+        semesters: {
+          7: {
+            name: "7th Semester",
+            subjects: [
+              "Subject 1",
+              "Subject 2",
+              "Subject 3",
+              "Subject 4",
+              "Subject 5",
+              "Subject 6"
+            ]
+          },
+
+          8: {
+            name: "8th Semester",
+            subjects: [
+              "Subject 1",
+              "Subject 2",
+              "Subject 3",
+              "Subject 4",
+              "Subject 5",
+              "Subject 6"
+            ]
+          }
+        }
       }
-    ]));
+    };
 
 
     /* =========================================================
@@ -542,13 +718,222 @@
        ========================================================= */
 
     function filterLectures(year, semesterNumber, subject) {
-      const semester = curriculum[year].semesters[semesterNumber];
-      const params = new URLSearchParams({
-        year: curriculum[year].name,
-        semester: semester.name,
-        subject: subject
+
+      const lectureCards =
+        document.querySelectorAll(".video-card-public");
+
+      let visibleCount = 0;
+
+
+      /* ---------------------------------------------------------
+         Normalize numbers
+         2 / 2nd / 2nd Year → 2
+         4 / 4th / 4th Semester → 4
+         --------------------------------------------------------- */
+
+      function normalizeNumber(value) {
+
+        const match =
+          String(value || "").match(/\d+/);
+
+        return match ? match[0] : "";
+
+      }
+
+
+      /* ---------------------------------------------------------
+         Normalize subject names
+         --------------------------------------------------------- */
+
+      function normalizeSubject(value) {
+
+        let text =
+          String(value || "")
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, " ");
+
+
+        /*
+          Existing COA videos may have subject stored as "coa".
+          Treat that as the full subject name.
+        */
+
+        if (
+          text === "coa" ||
+          text === "c.o.a."
+        ) {
+          return "computer organization & architecture";
+        }
+
+
+        return text;
+
+      }
+
+
+      const selectedYear =
+        normalizeNumber(year);
+
+      const selectedSemester =
+        normalizeNumber(semesterNumber);
+
+      const selectedSubject =
+        normalizeSubject(subject);
+
+
+      lectureCards.forEach(function (card) {
+
+        const cardYear =
+          normalizeNumber(
+            card.dataset.year
+          );
+
+
+        const cardSemester =
+          normalizeNumber(
+            card.dataset.semester
+          );
+
+
+        const cardSubject =
+          normalizeSubject(
+            card.dataset.subject
+          );
+
+
+        const subjectMatches =
+          cardSubject === selectedSubject;
+
+
+        /*
+          Normally we require:
+          Year + Semester + Subject
+    
+          BUT if an old video doesn't have
+          year/semester saved yet, we allow
+          the subject match.
+    
+          This lets your existing videos
+          continue working.
+        */
+
+        const hasYearAndSemester =
+          cardYear !== "" &&
+          cardSemester !== "";
+
+
+        const yearSemesterMatches =
+          cardYear === selectedYear &&
+          cardSemester === selectedSemester;
+
+
+        const matches =
+          subjectMatches &&
+          (
+            !hasYearAndSemester ||
+            yearSemesterMatches
+          );
+
+
+        console.log(
+          "Lecture check:",
+          {
+            cardYear,
+            selectedYear,
+            cardSemester,
+            selectedSemester,
+            cardSubject,
+            selectedSubject,
+            matches
+          }
+        );
+
+
+        if (matches) {
+
+          card.style.display = "";
+
+          visibleCount++;
+
+        } else {
+
+          card.style.display = "none";
+
+        }
+
       });
-      window.location.assign(`/?${params.toString()}#lectures`);
+
+
+      /* ---------------------------------------------------------
+         UPDATE HEADING
+         --------------------------------------------------------- */
+
+      const lectureHeading =
+        document.querySelector(
+          ".section-heading h2"
+        );
+
+
+      if (lectureHeading) {
+
+        lectureHeading.textContent =
+          subject;
+
+      }
+
+
+      /* ---------------------------------------------------------
+         UPDATE COUNT
+         --------------------------------------------------------- */
+
+      const resultCount =
+        document.querySelector(
+          ".result-count"
+        );
+
+
+      if (resultCount) {
+
+        resultCount.textContent =
+          `${visibleCount} lecture${visibleCount === 1
+            ? ""
+            : "s"
+          }`;
+
+      }
+
+
+      /* ---------------------------------------------------------
+         UPDATE BREADCRUMB
+         --------------------------------------------------------- */
+
+      updatePath(
+        year,
+        semesterNumber,
+        subject
+      );
+
+
+      /* ---------------------------------------------------------
+         SCROLL TO LECTURES
+         --------------------------------------------------------- */
+
+      const lectureSection =
+        document.querySelector(
+          ".section-heading"
+        );
+
+
+      if (lectureSection) {
+
+        lectureSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+
+      }
+
     }
 
     /* =========================================================

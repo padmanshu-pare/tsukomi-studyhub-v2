@@ -183,84 +183,6 @@ def extract_youtube_id(url):
     return None
 
 
-PUBLIC_VIDEO_VISIBILITY = {
-    "$or": [
-        {"published": True},
-        {"published": {"$exists": False}, "status": "published"},
-    ]
-}
-
-SUBJECT_SEARCH_ALIASES = {
-    "dbms": (
-        "DBMS",
-        "Database Management Systems",
-        "Database Management System",
-        "Database Management Systems (DBMS)",
-    ),
-    "database management systems": (
-        "DBMS",
-        "Database Management Systems",
-        "Database Management System",
-        "Database Management Systems (DBMS)",
-    ),
-    "database management systems dbms": (
-        "DBMS",
-        "Database Management Systems",
-        "Database Management System",
-        "Database Management Systems (DBMS)",
-    ),
-    "toc": (
-        "TOC",
-        "Theory of Computation",
-        "Theory of Computation (TOC)",
-    ),
-    "theory of computation": (
-        "TOC",
-        "Theory of Computation",
-        "Theory of Computation (TOC)",
-    ),
-    "theory of computation toc": (
-        "TOC",
-        "Theory of Computation",
-        "Theory of Computation (TOC)",
-    ),
-    "iwt": (
-        "IWT",
-        "Internet and Web Technology",
-        "Internet and Web Technology (IWT)",
-    ),
-    "internet and web technology": (
-        "IWT",
-        "Internet and Web Technology",
-        "Internet and Web Technology (IWT)",
-    ),
-    "internet and web technology iwt": (
-        "IWT",
-        "Internet and Web Technology",
-        "Internet and Web Technology (IWT)",
-    ),
-}
-
-
-def public_video_filter(criteria=None):
-    """Match published videos, including legacy records without a published flag."""
-    if criteria:
-        return {"$and": [PUBLIC_VIDEO_VISIBILITY, criteria]}
-    return PUBLIC_VIDEO_VISIBILITY
-
-
-def _subject_search_terms(value):
-    normalized = re.sub(r"[^a-z0-9]+", " ", value.lower()).strip()
-    aliases = SUBJECT_SEARCH_ALIASES.get(normalized, ())
-    return tuple(dict.fromkeys((value, *aliases)))
-
-
-def _academic_sort_key(value):
-    text = str(value or "")
-    match = re.search(r"\d+", text)
-    return (int(match.group()) if match else 0, text.casefold())
-
-
 @app.route("/")
 def home():
     require_db()
@@ -274,8 +196,9 @@ def home():
     except ValueError:
         page = 1
 
-    filters = {}
+    filters = {"published": True}
     for field, value in {
+        "subject": selected_subject,
         "year": selected_year,
         "semester": selected_semester,
         "unit": selected_unit,
@@ -283,137 +206,30 @@ def home():
         if value:
             filters[field] = value
 
-    if selected_subject:
-        filters["$and"] = [{
-            "$or": [
-                {
-                    "subject": {
-                        "$regex": f"^{re.escape(term)}$",
-                        "$options": "i",
-                    }
-                }
-                for term in _subject_search_terms(selected_subject)
-            ]
-        }]
-
     if query:
-        search_conditions = []
-        for term in _subject_search_terms(query):
-            safe_term = re.escape(term)
-            search_conditions.extend(
-                {field: {"$regex": safe_term, "$options": "i"}}
-                for field in (
-                    "title",
-                    "subject",
-                    "unit",
-                    "year",
-                    "semester",
-                    "description",
-                )
-            )
-        filters.setdefault("$and", []).append({"$or": search_conditions})
+        safe_query = re.escape(query)
+        filters["$or"] = [
+            {"title": {"$regex": safe_query, "$options": "i"}},
+            {"subject": {"$regex": safe_query, "$options": "i"}},
+            {"unit": {"$regex": safe_query, "$options": "i"}},
+        ]
 
     page_size = 12
-    public_filters = public_video_filter(filters)
-    total_videos = db.videos.count_documents(public_filters)
+    total_videos = db.videos.count_documents(filters)
     total_pages = max(1, (total_videos + page_size - 1) // page_size)
     page = min(page, total_pages)
-    pagination_filters = {
-        key: value
-        for key, value in {
-            "q": query,
-            "subject": selected_subject,
-            "year": selected_year,
-            "semester": selected_semester,
-            "unit": selected_unit,
-        }.items()
-        if value
-    }
-    pagination_urls = {
-        "previous": (
-            url_for("home", **{**pagination_filters, "page": page - 1})
-            if page > 1 else None
-        ),
-        "next": (
-            url_for("home", **{**pagination_filters, "page": page + 1})
-            if page < total_pages else None
-        ),
-    }
     videos = list(
-        db.videos.find(public_filters)
-        .sort([("created_at", -1), ("_id", -1)])
+        db.videos.find(filters)
+        .sort("created_at", -1)
         .skip((page - 1) * page_size)
         .limit(page_size)
     )
-    all_published = public_video_filter()
-
-    subject_catalog = {}
-    for item in db.videos.aggregate([
-        {"$match": all_published},
-        {"$group": {
-            "_id": {
-                "year": "$year",
-                "semester": "$semester",
-                "subject": "$subject",
-            },
-            "video_count": {"$sum": 1},
-        }},
-    ]):
-        group = item["_id"]
-        year = str(group.get("year") or "").strip()
-        semester = str(group.get("semester") or "").strip()
-        subject = str(group.get("subject") or "").strip()
-        if not year or not semester or not subject:
-            continue
-        year_group = subject_catalog.setdefault(year, {})
-        semester_group = year_group.setdefault(semester, [])
-        semester_group.append({
-            "name": subject,
-            "video_count": item["video_count"],
-        })
-
-    catalog = [
-        {
-            "number": _academic_sort_key(year)[0],
-            "year": year,
-            "semesters": [
-                {
-                    "number": _academic_sort_key(semester)[0],
-                    "name": semester,
-                    "subjects": sorted(
-                        semester_subjects,
-                        key=lambda item: str(item["name"]).casefold(),
-                    ),
-                }
-                for semester, semester_subjects in sorted(
-                    semesters.items(),
-                    key=lambda item: _academic_sort_key(item[0]),
-                )
-            ],
-        }
-        for year, semesters in sorted(
-            subject_catalog.items(),
-            key=lambda item: _academic_sort_key(item[0]),
-        )
-    ]
+    all_published = {"published": True}
     options = {
-        "subjects": sorted(
-            filter(None, db.videos.distinct("subject", all_published)),
-            key=str.casefold,
-        ),
-        "years": sorted(
-            filter(None, db.videos.distinct("year", all_published)),
-            key=_academic_sort_key,
-        ),
-        "semesters": sorted(
-            filter(None, db.videos.distinct("semester", all_published)),
-            key=_academic_sort_key,
-        ),
-        "units": sorted(
-            filter(None, db.videos.distinct("unit", all_published)),
-            key=str.casefold,
-        ),
-        "subject_catalog": catalog,
+        "subjects": sorted(filter(None, db.videos.distinct("subject", all_published))),
+        "years": sorted(filter(None, db.videos.distinct("year", all_published))),
+        "semesters": sorted(filter(None, db.videos.distinct("semester", all_published))),
+        "units": sorted(filter(None, db.videos.distinct("unit", all_published))),
     }
     return render_template(
         "index.html",
@@ -425,7 +241,6 @@ def home():
         selected_unit=selected_unit,
         page=page,
         total_pages=total_pages,
-        pagination_urls=pagination_urls,
         total_videos=total_videos,
         **options,
     )
@@ -446,7 +261,7 @@ def sitemap():
     pages = [url_for("home", _external=True)]
     pages.extend(
         url_for("watch", slug=video["slug"], _external=True)
-        for video in db.videos.find(public_video_filter(), {"slug": 1})
+        for video in db.videos.find({"published": True}, {"slug": 1})
     )
     xml = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     xml.extend(f"<url><loc>{page}</loc></url>" for page in pages)
@@ -457,15 +272,18 @@ def sitemap():
 @app.route("/watch/<slug>")
 def watch(slug):
     require_db()
-    video = db.videos.find_one(public_video_filter({"slug": slug}))
+    video = db.videos.find_one({"slug": slug, "published": True})
     if not video:
         abort(404)
 
-    related_filter = {"_id": {"$ne": video["_id"]}}
+    related_filter = {
+        "published": True,
+        "_id": {"$ne": video["_id"]},
+    }
     if video.get("subject"):
         related_filter["subject"] = video["subject"]
     related_videos = list(
-        db.videos.find(public_video_filter(related_filter)).sort("created_at", -1).limit(3)
+        db.videos.find(related_filter).sort("created_at", -1).limit(3)
     )
 
     return render_template(
@@ -481,9 +299,10 @@ def watch_start(video_id):
     require_db()
 
     try:
-        video = db.videos.find_one(
-            public_video_filter({"_id": ObjectId(video_id)})
-        )
+        video = db.videos.find_one({
+            "_id": ObjectId(video_id),
+            "published": True,
+        })
     except Exception:
         abort(404)
 
@@ -541,9 +360,10 @@ def watch_progress(video_id):
     # Store progress approximately every 5 seconds instead of every heartbeat.
     if client_seconds >= last_recorded + 5:
         try:
-            video = db.videos.find_one(
-                public_video_filter({"_id": ObjectId(video_id)})
-            )
+            video = db.videos.find_one({
+                "_id": ObjectId(video_id),
+                "published": True,
+            })
         except Exception:
             video = None
 
@@ -593,9 +413,10 @@ def unlock(video_id):
         }), 403
 
     try:
-        video = db.videos.find_one(
-            public_video_filter({"_id": ObjectId(video_id)})
-        )
+        video = db.videos.find_one({
+            "_id": ObjectId(video_id),
+            "published": True,
+        })
     except Exception:
         abort(404)
 
@@ -641,9 +462,10 @@ def download_redirect(video_id):
         )
 
     try:
-        video = db.videos.find_one(
-            public_video_filter({"_id": ObjectId(video_id)})
-        )
+        video = db.videos.find_one({
+            "_id": ObjectId(video_id),
+            "published": True
+        })
     except Exception:
         abort(404)
 
@@ -728,7 +550,7 @@ def admin_dashboard():
 
     videos = list(db.videos.find().sort("created_at", -1))
     total_videos = db.videos.count_documents({})
-    published = db.videos.count_documents(public_video_filter())
+    published = db.videos.count_documents({"published": True})
     drafts = db.videos.count_documents({
         "published": False,
         "status": "draft",
@@ -760,7 +582,7 @@ def admin_content():
 
     videos = list(db.videos.find().sort("created_at", -1))
     total_videos = db.videos.count_documents({})
-    published = db.videos.count_documents(public_video_filter())
+    published = db.videos.count_documents({"published": True})
     drafts = db.videos.count_documents({
         "published": False,
         "status": "draft",
