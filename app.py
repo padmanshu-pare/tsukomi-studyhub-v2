@@ -183,6 +183,35 @@ def extract_youtube_id(url):
     return None
 
 
+def _semester_label(number):
+    if number % 100 in {11, 12, 13}:
+        suffix = "th"
+    else:
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(number % 10, "th")
+    return f"{number}{suffix} Semester"
+
+
+def _semester_filter(value):
+    """Match common stored labels for a semester number."""
+    match = re.search(r"\d+", value or "")
+    if not match:
+        return {"semester": value}
+
+    number = int(match.group())
+    ordinal = _semester_label(number).split(" ", 1)[0]
+    alternatives = (
+        rf"^{ordinal}\s+semester$",
+        rf"^semester\s+{number}$",
+        rf"^{number}$",
+    )
+    return {
+        "semester": {
+            "$regex": "(?:" + "|".join(alternatives) + ")",
+            "$options": "i",
+        }
+    }
+
+
 @app.route("/")
 def home():
     require_db()
@@ -191,31 +220,142 @@ def home():
     selected_year = request.args.get("year", "").strip()
     selected_semester = request.args.get("semester", "").strip()
     selected_unit = request.args.get("unit", "").strip()
+    selected_unit_label = (
+        "Uncategorized"
+        if selected_unit == "__uncategorized__"
+        else selected_unit
+    )
+    selected_semester_number = re.search(r"\d+", selected_semester or "")
+    selected_semester_number = (
+        int(selected_semester_number.group())
+        if selected_semester_number else None
+    )
+    selected_semester_label = (
+        _semester_label(selected_semester_number)
+        if selected_semester_number else selected_semester
+    )
     try:
         page = max(1, int(request.args.get("page", "1")))
     except ValueError:
         page = 1
 
     filters = {"published": True}
-    for field, value in {
-        "subject": selected_subject,
-        "year": selected_year,
-        "semester": selected_semester,
-        "unit": selected_unit,
-    }.items():
-        if value:
-            filters[field] = value
+    if selected_year:
+        filters["year"] = selected_year
+    if selected_semester:
+        filters.update(_semester_filter(selected_semester))
+    if selected_subject:
+        filters["subject"] = selected_subject
+    if selected_unit:
+        if selected_unit == "__uncategorized__":
+            filters["$and"] = [{
+                "$or": [
+                    {"unit": ""},
+                    {"unit": None},
+                    {"unit": {"$exists": False}},
+                ]
+            }]
+        else:
+            filters["unit"] = selected_unit
 
     if query:
         safe_query = re.escape(query)
-        filters["$or"] = [
+        filters.setdefault("$and", []).append({"$or": [
             {"title": {"$regex": safe_query, "$options": "i"}},
             {"subject": {"$regex": safe_query, "$options": "i"}},
             {"unit": {"$regex": safe_query, "$options": "i"}},
-        ]
+            {"description": {"$regex": safe_query, "$options": "i"}},
+        ]})
 
+    browse_filters = {"published": True}
+    if selected_semester:
+        browse_filters.update(_semester_filter(selected_semester))
+
+    semester_catalog = []
+    for semester_number in range(1, 9):
+        label = _semester_label(semester_number)
+        semester_filter = {"published": True, **_semester_filter(label)}
+        semester_catalog.append({
+            "label": label,
+            "number": semester_number,
+            "video_count": db.videos.count_documents(semester_filter),
+        })
+
+    known_semester_numbers = {item["number"] for item in semester_catalog}
+    for stored_semester in db.videos.distinct(
+        "semester",
+        {"published": True},
+    ):
+        if not stored_semester:
+            continue
+        number_match = re.search(r"\d+", str(stored_semester))
+        if number_match and int(number_match.group()) in known_semester_numbers:
+            continue
+        semester_catalog.append({
+            "label": str(stored_semester),
+            "number": int(number_match.group()) if number_match else 99,
+            "video_count": db.videos.count_documents({
+                "published": True,
+                "semester": stored_semester,
+            }),
+        })
+    semester_catalog.sort(key=lambda item: (item["number"], item["label"].casefold()))
+
+    semester_video_count = (
+        db.videos.count_documents(browse_filters)
+        if selected_semester else 0
+    )
+    semester_subjects = []
+    subject_units = []
+    subject_video_count = 0
+    if selected_semester and not selected_subject:
+        for subject in sorted(
+            filter(None, db.videos.distinct("subject", browse_filters)),
+            key=str.casefold,
+        ):
+            subject_filter = {**browse_filters, "subject": subject}
+            semester_subjects.append({
+                "name": subject,
+                "video_count": db.videos.count_documents(subject_filter),
+            })
+    elif selected_semester and selected_subject:
+        subject_filter = {**browse_filters, "subject": selected_subject}
+        subject_video_count = db.videos.count_documents(subject_filter)
+        for unit in sorted(
+            filter(None, db.videos.distinct("unit", subject_filter)),
+            key=str.casefold,
+        ):
+            unit_filter = {**subject_filter, "unit": unit}
+            subject_units.append({
+                "name": unit,
+                "video_count": db.videos.count_documents(unit_filter),
+            })
+        if db.videos.count_documents({
+            **subject_filter,
+            "$or": [
+                {"unit": ""},
+                {"unit": None},
+                {"unit": {"$exists": False}},
+            ],
+        }):
+            subject_units.append({
+                "name": "Uncategorized",
+                "value": "__uncategorized__",
+                "video_count": db.videos.count_documents({
+                    **subject_filter,
+                    "$or": [
+                        {"unit": ""},
+                        {"unit": None},
+                        {"unit": {"$exists": False}},
+                    ],
+                }),
+            })
+    else:
+        subject_video_count = 0
+
+    show_videos = bool(query or selected_unit)
     page_size = 12
-    total_videos = db.videos.count_documents(filters)
+    total_videos = db.videos.count_documents(filters) if show_videos else 0
     total_pages = max(1, (total_videos + page_size - 1) // page_size)
     page = min(page, total_pages)
     videos = list(
@@ -223,7 +363,7 @@ def home():
         .sort("created_at", -1)
         .skip((page - 1) * page_size)
         .limit(page_size)
-    )
+    ) if show_videos else []
     all_published = {"published": True}
     options = {
         "subjects": sorted(filter(None, db.videos.distinct("subject", all_published))),
@@ -239,6 +379,14 @@ def home():
         selected_year=selected_year,
         selected_semester=selected_semester,
         selected_unit=selected_unit,
+        selected_unit_label=selected_unit_label,
+        selected_semester_label=selected_semester_label,
+        semester_catalog=semester_catalog,
+        semester_video_count=semester_video_count,
+        semester_subjects=semester_subjects,
+        subject_units=subject_units,
+        subject_video_count=subject_video_count,
+        show_videos=show_videos,
         page=page,
         total_pages=total_pages,
         total_videos=total_videos,

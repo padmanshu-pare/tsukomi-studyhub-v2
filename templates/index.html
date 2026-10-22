@@ -4,1059 +4,211 @@
 
 {% block content %}
 
-<!-- ============================================================
-     HERO
-     ============================================================ -->
-
 <section class="hero hero-home">
-
   <div class="hero-copy">
-
-    <p class="eyebrow">
-      RGPV • B.Tech • Exam Preparation
-    </p>
-
-    <h1>
-      Learn from the lecture.
-      <span>Unlock the notes.</span>
-    </h1>
-
-    <p>
-      Short, exam-focused lectures and notes for your
-      RGPV preparation — all in one place.
-    </p>
-
+    <p class="eyebrow">RGPV • B.Tech • Exam Preparation</p>
+    <h1>Learn from the lecture.<span>Unlock the notes.</span></h1>
+    <p>Short, exam-focused lectures and notes for your RGPV preparation — all in one place.</p>
   </div>
-
 </section>
 
 <section class="library-search panel" aria-label="Search lecture library">
-  <form method="get" class="search-form">
+  <form method="get" action="{{ url_for('home') }}" class="search-form">
     <label class="search-field">
       <span class="sr-only">Search lectures</span>
-      <input type="search" name="q" value="{{ query }}" placeholder="Search a subject, unit, or lecture title">
+      <input type="search" name="q" value="{{ query }}" placeholder="Search subjects, units, or lecture titles">
     </label>
-    <select name="year" aria-label="Filter by year">
-      <option value="">All years</option>
-      {% for year in years %}<option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>{% endfor %}
-    </select>
-    <select name="semester" aria-label="Filter by semester">
-      <option value="">All semesters</option>
-      {% for semester in semesters %}<option value="{{ semester }}" {% if selected_semester == semester %}selected{% endif %}>{{ semester }}</option>{% endfor %}
-    </select>
-    <select name="subject" aria-label="Filter by subject">
-      <option value="">All subjects</option>
-      {% for subject in subjects %}<option value="{{ subject }}" {% if selected_subject == subject %}selected{% endif %}>{{ subject }}</option>{% endfor %}
-    </select>
-    <select name="unit" aria-label="Filter by unit">
-      <option value="">All units</option>
-      {% for unit in units %}<option value="{{ unit }}" {% if selected_unit == unit %}selected{% endif %}>{{ unit }}</option>{% endfor %}
-    </select>
-    <button class="button" type="submit">Find lectures</button>
-    {% if query or selected_subject or selected_year or selected_semester or selected_unit %}
+    <button class="button" type="submit">Search videos</button>
+    {% if query %}
     <a class="clear-filters" href="{{ url_for('home') }}">Clear</a>
     {% endif %}
   </form>
 </section>
 
-
-<!-- ============================================================
-     FIND WHAT YOU ARE STUDYING
-     ============================================================ -->
-
-<section class="study-selector panel" id="study-selector">
-
+<section class="study-selector panel" id="study-selector" aria-labelledby="browser-title">
   <div class="study-selector-header">
-
     <div>
-
-      <p class="eyebrow">
-        FIND WHAT YOU'RE STUDYING
-      </p>
-
-      <h2 id="selector-title">
-        Choose your year
+      <p class="eyebrow">STUDY LIBRARY</p>
+      <h2 id="browser-title">
+        {% if selected_subject and selected_unit %}
+        {{ selected_subject }} · {{ selected_unit_label }}
+        {% elif selected_subject %}
+        {{ selected_subject }} · Units
+        {% elif selected_semester %}
+        {{ selected_semester_label }}
+        {% else %}
+        Browse by semester
+        {% endif %}
       </h2>
-
-      <p id="selector-description">
-        Start by selecting your B.Tech year.
+      <p>
+        {% if selected_subject and selected_unit %}
+        {{ total_videos }} video{% if total_videos != 1 %}s{% endif %} in this unit.
+        {% elif selected_subject %}
+        Choose a unit to see its videos.
+        {% elif selected_semester %}
+        Choose a subject to continue.
+        {% else %}
+        Select a semester, then choose a subject and unit.
+        {% endif %}
       </p>
-
     </div>
 
-    <button id="selector-back" class="selector-back hidden" type="button">
-      ← Back
-    </button>
-
+    {% if selected_unit %}
+    <a class="selector-back" href="{{ url_for('home', semester=selected_semester, subject=selected_subject) }}">← Back to units</a>
+    {% elif selected_subject %}
+    <a class="selector-back" href="{{ url_for('home', semester=selected_semester) }}">← Back to subjects</a>
+    {% elif selected_semester %}
+    <a class="selector-back" href="{{ url_for('home') }}">← All semesters</a>
+    {% endif %}
   </div>
 
-
-  <!-- STEP 1 : YEAR -->
-
-  <div id="year-selection" class="selection-grid">
-
-    <button class="selection-card" data-year="1" type="button">
-
-      <div class="selection-icon">
-        01
-      </div>
-
-      <div class="selection-info">
-
-        <strong>1st Year</strong>
-
+  {% if not selected_semester %}
+  <div class="selection-grid">
+    {% for semester in semester_catalog %}
+    <a class="selection-card" href="{{ url_for('home', semester=semester.label) }}">
+      <span class="selection-icon">{{ "%02d"|format(semester.number) }}</span>
+      <span class="selection-info">
+        <strong>{{ semester.label }}</strong>
         <span>
-          Semester 1 & 2
+          {% if semester.video_count %}
+          {{ semester.video_count }} published video{% if semester.video_count != 1 %}s{% endif %}
+          {% else %}
+          Explore semester
+          {% endif %}
         </span>
-
-      </div>
-
-      <div class="selection-arrow">
-        →
-      </div>
-
-    </button>
-
-
-    <button class="selection-card" data-year="2" type="button">
-
-      <div class="selection-icon">
-        02
-      </div>
-
-      <div class="selection-info">
-
-        <strong>2nd Year</strong>
-
-        <span>
-          Semester 3 & 4
-        </span>
-
-      </div>
-
-      <div class="selection-arrow">
-        →
-      </div>
-
-    </button>
-
-
-    <button class="selection-card" data-year="3" type="button">
-
-      <div class="selection-icon">
-        03
-      </div>
-
-      <div class="selection-info">
-
-        <strong>3rd Year</strong>
-
-        <span>
-          Semester 5 & 6
-        </span>
-
-      </div>
-
-      <div class="selection-arrow">
-        →
-      </div>
-
-    </button>
-
-
-    <button class="selection-card" data-year="4" type="button">
-
-      <div class="selection-icon">
-        04
-      </div>
-
-      <div class="selection-info">
-
-        <strong>4th Year</strong>
-
-        <span>
-          Semester 7 & 8
-        </span>
-
-      </div>
-
-      <div class="selection-arrow">
-        →
-      </div>
-
-    </button>
-
+      </span>
+      <span class="selection-arrow" aria-hidden="true">→</span>
+    </a>
+    {% endfor %}
   </div>
 
+  {% elif semester_video_count == 0 %}
+  <div class="empty-state panel" role="status">
+    <div class="empty-icon">⌕</div>
+    <h2>Content Coming Soon</h2>
+    <p>We’re preparing lectures and notes for {{ selected_semester_label }}.</p>
+    <a class="button" href="{{ url_for('home') }}">Browse other semesters</a>
+  </div>
 
-  <!-- STEP 2 : SEMESTER -->
+  {% elif not selected_subject %}
+  {% if semester_subjects %}
+  <div class="selection-grid subject-selection">
+    {% for subject in semester_subjects %}
+    <a class="selection-card" href="{{ url_for('home', semester=selected_semester, subject=subject.name) }}">
+      <span class="selection-icon" aria-hidden="true">📚</span>
+      <span class="selection-info">
+        <strong>{{ subject.name }}</strong>
+        <span>{{ subject.video_count }} video{% if subject.video_count != 1 %}s{% endif %}</span>
+      </span>
+      <span class="selection-arrow" aria-hidden="true">→</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state panel" role="status">
+    <div class="empty-icon">⌕</div>
+    <h2>Content Coming Soon</h2>
+    <p>We’re preparing subjects for {{ selected_semester_label }}.</p>
+    <a class="button" href="{{ url_for('home') }}">Browse other semesters</a>
+  </div>
+  {% endif %}
 
-  <div id="semester-selection" class="selection-grid hidden"></div>
+  {% elif subject_video_count == 0 %}
+  <div class="empty-state panel" role="status">
+    <div class="empty-icon">⌕</div>
+    <h2>Content Coming Soon</h2>
+    <p>We’re preparing videos for {{ selected_subject }}.</p>
+    <a class="button" href="{{ url_for('home', semester=selected_semester) }}">← Back to subjects</a>
+  </div>
 
+  {% elif not selected_unit %}
+  {% if subject_units %}
+  <div class="selection-grid subject-selection">
+    {% for unit in subject_units %}
+    <a class="selection-card" href="{{ url_for('home', semester=selected_semester, subject=selected_subject, unit=unit.value or unit.name) }}">
+      <span class="selection-icon" aria-hidden="true">▤</span>
+      <span class="selection-info">
+        <strong>{{ unit.name }}</strong>
+        <span>{{ unit.video_count }} video{% if unit.video_count != 1 %}s{% endif %}</span>
+      </span>
+      <span class="selection-arrow" aria-hidden="true">→</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state panel" role="status">
+    <div class="empty-icon">⌕</div>
+    <h2>Content Coming Soon</h2>
+    <p>We’re preparing units for {{ selected_subject }}.</p>
+    <a class="button" href="{{ url_for('home', semester=selected_semester) }}">← Back to subjects</a>
+  </div>
+  {% endif %}
 
-  <!-- STEP 3 : SUBJECT -->
-
-  <div id="subject-selection" class="selection-grid subject-selection hidden"></div>
-
-
-  <!-- CURRENT SELECTION -->
-
-  <div id="selection-path" class="selection-path hidden"></div>
-
+  {% elif total_videos == 0 %}
+  <div class="empty-state panel" role="status">
+    <div class="empty-icon">⌕</div>
+    <h2>Content Coming Soon</h2>
+    <p>We’re preparing videos for {{ selected_subject }} · {{ selected_unit }}.</p>
+    <a class="button" href="{{ url_for('home', semester=selected_semester, subject=selected_subject) }}">← Back to units</a>
+  </div>
+  {% endif %}
 </section>
 
-
-
-
-
-<!-- ============================================================
-     LECTURES
-     ============================================================ -->
-
-<div class="section-heading">
-
-  <div>
-
-    <p class="eyebrow">
-      STUDY LIBRARY
-    </p>
-
-    <h2>
-      {{ "Search Results"
-      if (query or selected_subject or selected_unit)
-      else "Latest Lectures" }}
-    </h2>
-
+{% if query or (selected_unit and total_videos) %}
+<section class="lecture-results" id="lectures" aria-labelledby="lecture-heading">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">LECTURES</p>
+      <h2 id="lecture-heading">
+        {% if query %}Search Results        {% else %}{{ selected_subject }} · {{ selected_unit_label }}{% endif %}
+      </h2>
+    </div>
+    <span class="result-count">{{ total_videos }} video{% if total_videos != 1 %}s{% endif %}</span>
   </div>
 
-  <span class="result-count">
-
-    {{ total_videos }}
-
-    lecture{% if videos|length != 1 %}s{% endif %}
-
-  </span>
-
-</div>
-
-{% if total_pages > 1 %}
-<nav class="pagination" aria-label="Lecture pages">
-  {% if page > 1 %}
-  <a href="{{ url_for('home', q=query, subject=selected_subject, year=selected_year, semester=selected_semester, unit=selected_unit, page=page - 1) }}">← Previous</a>
+  {% if total_pages > 1 %}
+  <nav class="pagination" aria-label="Lecture pages">
+    {% if page > 1 %}
+    <a href="{{ url_for('home', q=query, year=selected_year, semester=selected_semester, subject=selected_subject, unit=selected_unit, page=page - 1) }}#lectures">← Previous</a>
+    {% endif %}
+    <span>Page {{ page }} of {{ total_pages }}</span>
+    {% if page < total_pages %}
+    <a href="{{ url_for('home', q=query, year=selected_year, semester=selected_semester, subject=selected_subject, unit=selected_unit, page=page + 1) }}#lectures">Next →</a>
+    {% endif %}
+  </nav>
   {% endif %}
-  <span>Page {{ page }} of {{ total_pages }}</span>
-  {% if page < total_pages %}
-  <a href="{{ url_for('home', q=query, subject=selected_subject, year=selected_year, semester=selected_semester, unit=selected_unit, page=page + 1) }}">Next →</a>
-  {% endif %}
-</nav>
-{% endif %}
 
-
-<div class="grid video-grid">
-
-  {% for video in videos %}
-
-  <article class="video-card-public" data-year="{{ video.year }}" data-semester="{{ video.semester }}"
-    data-subject="{{ video.subject }}">
-
-    <a class="thumb" href="{{ url_for('watch', slug=video.slug) }}" aria-label="Watch {{ video.title }}">
-
-      <img src="https://img.youtube.com/vi/{{ video.youtube_id }}/hqdefault.jpg" alt="{{ video.title }} thumbnail"
-        loading="lazy">
-
-      <span class="play-badge">
-        ▶
-      </span>
-
-    </a>
-
-
-    <div class="video-card-body">
-
-      <div class="meta-row">
-
-        <span class="pill">
-          {{ video.unit or "Lecture" }}
-        </span>
-
-        {% if video.subject %}
-
-        <span class="meta-subject">
-          {{ video.subject }}
-        </span>
-
-        {% endif %}
-
-      </div>
-
-
-      <h3>
-        {{ video.title }}
-      </h3>
-
-
-      <p>
-        {{ video.description
-        or
-        "Exam-focused lecture with notes available after the required watch time." }}
-      </p>
-
-
-      <a class="watch-link" href="{{ url_for('watch', slug=video.slug) }}">
-
-        Watch & Unlock Notes
-
-        <span>
-          →
-        </span>
-
+  <div class="grid video-grid">
+    {% for video in videos %}
+    <article class="video-card-public">
+      <a class="thumb" href="{{ url_for('watch', slug=video.slug) }}" aria-label="Watch {{ video.title }}">
+        <img src="https://img.youtube.com/vi/{{ video.youtube_id }}/hqdefault.jpg" alt="{{ video.title }} thumbnail" loading="lazy">
+        <span class="play-badge">▶</span>
       </a>
-
+      <div class="video-card-body">
+        <div class="meta-row">
+          {% if video.semester %}<span class="pill">{{ video.semester }}</span>{% endif %}
+          {% if video.subject %}<span class="meta-subject">{{ video.subject }}</span>{% endif %}
+        </div>
+        <div class="meta-row">
+          {% if video.unit %}<span class="pill">{{ video.unit }}</span>{% endif %}
+          {% if video.year %}<span class="meta-subject">{{ video.year }}</span>{% endif %}
+        </div>
+        <h3>{{ video.title }}</h3>
+        <p>{{ video.description or "Exam-focused lecture with notes available after the required watch time." }}</p>
+        <a class="watch-link" href="{{ url_for('watch', slug=video.slug) }}">Watch &amp; Unlock Notes <span>→</span></a>
+      </div>
+    </article>
+    {% else %}
+    <div class="empty-state panel">
+      <div class="empty-icon">⌕</div>
+      <h2>No videos found</h2>
+      <p>Try another search term.</p>
+      <a class="button" href="{{ url_for('home') }}">View semesters</a>
     </div>
-
-  </article>
-
-  {% else %}
-
-  <div class="empty-state panel">
-
-    <div class="empty-icon">
-      ⌕
-    </div>
-
-    <h2>
-      No lectures found
-    </h2>
-
-    <p>
-      Try another keyword or clear the filters.
-    </p>
-
-    <a class="button" href="{{ url_for('home') }}">
-      View All Lectures
-    </a>
-
+    {% endfor %}
   </div>
-
-  {% endfor %}
-
-</div>
-
-
-<!-- ============================================================
-     YEAR / SEMESTER / SUBJECT LOGIC
-     ============================================================ -->
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-
-    /* =========================================================
-       CURRICULUM
-       ========================================================= */
-
-    const curriculum = {
-      1: {
-        name: "1st Year",
-        semesters: {
-          1: {
-            name: "1st Semester",
-            subjects: [
-              "Engineering Chemistry",
-              "Basic Electrical & Electronics Engineering",
-              "Mathematics-I",
-              "Engineering Graphics",
-              "English"
-            ]
-          },
-          2: {
-            name: "2nd Semester",
-            subjects: [
-              "Engineering Physics",
-              "Mathematics-II",
-              "Basic Mechanical Engineering",
-              "Basic Civil Engineering & Engineering Mechanics",
-              "Basic Computer Engineering",
-              "Language Lab & Seminars"
-            ]
-          }
-        }
-      },
-
-      2: {
-        name: "2nd Year",
-        semesters: {
-          3: {
-            name: "3rd Semester",
-            subjects: [
-              "Subject 1",
-              "Subject 2",
-              "Subject 3",
-              "Subject 4",
-              "Subject 5",
-              "Subject 6"
-            ]
-          },
-
-          4: {
-            name: "4th Semester",
-            subjects: [
-              "Mathematics-III",
-              "Analysis & Design of Algorithms",
-              "Software Engineering",
-              "Computer Organization & Architecture",
-              "Operating Systems",
-              "Programming Practices"
-            ]
-          }
-        }
-      },
-
-      3: {
-        name: "3rd Year",
-        semesters: {
-          5: {
-            name: "5th Semester",
-            subjects: [
-              "Database Management Systems (DBMS)",
-              "Theory of Computation (TOC)",
-              "Internet and Web Technology (IWT)",
-              "Cyber Security"
-            ]
-          },
-
-          6: {
-            name: "6th Semester",
-            subjects: [
-              "Subject 1",
-              "Subject 2",
-              "Subject 3",
-              "Subject 4",
-              "Subject 5",
-              "Subject 6"
-            ]
-          }
-        }
-      },
-
-      4: {
-        name: "4th Year",
-        semesters: {
-          7: {
-            name: "7th Semester",
-            subjects: [
-              "Subject 1",
-              "Subject 2",
-              "Subject 3",
-              "Subject 4",
-              "Subject 5",
-              "Subject 6"
-            ]
-          },
-
-          8: {
-            name: "8th Semester",
-            subjects: [
-              "Subject 1",
-              "Subject 2",
-              "Subject 3",
-              "Subject 4",
-              "Subject 5",
-              "Subject 6"
-            ]
-          }
-        }
-      }
-    };
-
-
-    /* =========================================================
-       ELEMENTS
-       ========================================================= */
-
-    const yearSelection =
-      document.getElementById("year-selection");
-
-    const semesterSelection =
-      document.getElementById("semester-selection");
-
-    const subjectSelection =
-      document.getElementById("subject-selection");
-
-    const title =
-      document.getElementById("selector-title");
-
-    const description =
-      document.getElementById("selector-description");
-
-    const backButton =
-      document.getElementById("selector-back");
-
-    const path =
-      document.getElementById("selection-path");
-
-
-    /* =========================================================
-       STATE
-       ========================================================= */
-
-    let selectedYear = null;
-    let selectedSemester = null;
-
-
-    /* =========================================================
-       YEAR CLICK
-       ========================================================= */
-
-    document
-      .querySelectorAll("[data-year]")
-      .forEach(card => {
-
-        card.addEventListener("click", function () {
-
-          selectedYear =
-            Number(this.dataset.year);
-
-          selectedSemester = null;
-
-          showSemesters(selectedYear);
-        });
-
-      });
-
-
-    /* =========================================================
-       SHOW SEMESTERS
-       ========================================================= */
-
-    function showSemesters(year) {
-
-      const yearData =
-        curriculum[year];
-
-      if (!yearData) {
-        console.error(
-          "No curriculum found for year:",
-          year
-        );
-        return;
-      }
-
-      yearSelection.classList.add("hidden");
-
-      semesterSelection.innerHTML = "";
-
-      semesterSelection.classList.remove("hidden");
-
-      subjectSelection.classList.add("hidden");
-
-      path.classList.add("hidden");
-
-      title.textContent =
-        yearData.name;
-
-      description.textContent =
-        "Choose your semester.";
-
-
-      Object.entries(yearData.semesters)
-        .forEach(([semesterNumber, semester]) => {
-
-          const card =
-            document.createElement("button");
-
-          card.type = "button";
-
-          card.className =
-            "selection-card";
-
-          card.innerHTML = `
-                    <div class="selection-icon">
-                        ${semesterNumber}
-                    </div>
-
-                    <div class="selection-info">
-                        <strong>
-                            ${semester.name}
-                        </strong>
-
-                        <span>
-                            ${semester.subjects.length} subjects
-                        </span>
-                    </div>
-
-                    <div class="selection-arrow">
-                        →
-                    </div>
-                `;
-
-
-          card.addEventListener(
-            "click",
-            function () {
-
-              selectedSemester =
-                Number(semesterNumber);
-
-              showSubjects(
-                year,
-                Number(semesterNumber)
-              );
-
-            }
-          );
-
-
-          semesterSelection.appendChild(card);
-
-        });
-
-
-      backButton.classList.remove("hidden");
-    }
-
-
-    /* =========================================================
-       SHOW SUBJECTS
-       ========================================================= */
-
-    function showSubjects(
-      year,
-      semesterNumber
-    ) {
-
-      const semester =
-        curriculum[year]
-          .semesters[semesterNumber];
-
-      if (!semester) {
-        console.error(
-          "Semester not found:",
-          year,
-          semesterNumber
-        );
-        return;
-      }
-
-
-      semesterSelection.classList.add("hidden");
-
-      subjectSelection.innerHTML = "";
-
-      subjectSelection.classList.remove("hidden");
-
-
-      title.textContent =
-        semester.name;
-
-      description.textContent =
-        "Choose a subject to explore its lectures.";
-
-
-      semester.subjects.forEach(function (subject) {
-
-        const card =
-          document.createElement("button");
-
-        card.type = "button";
-
-        card.className =
-          "selection-card";
-
-
-        card.innerHTML = `
-
-      <div class="selection-icon">
-        📚
-      </div>
-
-      <div class="selection-info">
-
-        <strong>
-          ${subject}
-        </strong>
-
-        <span>
-          View lectures →
-        </span>
-
-      </div>
-
-      <div class="selection-arrow">
-        →
-      </div>
-
-    `;
-
-
-        card.addEventListener(
-          "click",
-          function () {
-
-            filterLectures(
-              year,
-              semesterNumber,
-              subject
-            );
-
-          }
-        );
-
-
-        subjectSelection.appendChild(card);
-
-      });
-
-
-      updatePath(
-        year,
-        semesterNumber
-      );
-
-    }
-
-    /* =========================================================
-       FILTER LECTURES
-       ========================================================= */
-
-    function filterLectures(year, semesterNumber, subject) {
-
-      const lectureCards =
-        document.querySelectorAll(".video-card-public");
-
-      let visibleCount = 0;
-
-
-      /* ---------------------------------------------------------
-         Normalize numbers
-         2 / 2nd / 2nd Year → 2
-         4 / 4th / 4th Semester → 4
-         --------------------------------------------------------- */
-
-      function normalizeNumber(value) {
-
-        const match =
-          String(value || "").match(/\d+/);
-
-        return match ? match[0] : "";
-
-      }
-
-
-      /* ---------------------------------------------------------
-         Normalize subject names
-         --------------------------------------------------------- */
-
-      function normalizeSubject(value) {
-
-        let text =
-          String(value || "")
-            .trim()
-            .toLowerCase()
-            .replace(/\s+/g, " ");
-
-
-        /*
-          Existing COA videos may have subject stored as "coa".
-          Treat that as the full subject name.
-        */
-
-        if (
-          text === "coa" ||
-          text === "c.o.a."
-        ) {
-          return "computer organization & architecture";
-        }
-
-
-        return text;
-
-      }
-
-
-      const selectedYear =
-        normalizeNumber(year);
-
-      const selectedSemester =
-        normalizeNumber(semesterNumber);
-
-      const selectedSubject =
-        normalizeSubject(subject);
-
-
-      lectureCards.forEach(function (card) {
-
-        const cardYear =
-          normalizeNumber(
-            card.dataset.year
-          );
-
-
-        const cardSemester =
-          normalizeNumber(
-            card.dataset.semester
-          );
-
-
-        const cardSubject =
-          normalizeSubject(
-            card.dataset.subject
-          );
-
-
-        const subjectMatches =
-          cardSubject === selectedSubject;
-
-
-        /*
-          Normally we require:
-          Year + Semester + Subject
-    
-          BUT if an old video doesn't have
-          year/semester saved yet, we allow
-          the subject match.
-    
-          This lets your existing videos
-          continue working.
-        */
-
-        const hasYearAndSemester =
-          cardYear !== "" &&
-          cardSemester !== "";
-
-
-        const yearSemesterMatches =
-          cardYear === selectedYear &&
-          cardSemester === selectedSemester;
-
-
-        const matches =
-          subjectMatches &&
-          (
-            !hasYearAndSemester ||
-            yearSemesterMatches
-          );
-
-
-        console.log(
-          "Lecture check:",
-          {
-            cardYear,
-            selectedYear,
-            cardSemester,
-            selectedSemester,
-            cardSubject,
-            selectedSubject,
-            matches
-          }
-        );
-
-
-        if (matches) {
-
-          card.style.display = "";
-
-          visibleCount++;
-
-        } else {
-
-          card.style.display = "none";
-
-        }
-
-      });
-
-
-      /* ---------------------------------------------------------
-         UPDATE HEADING
-         --------------------------------------------------------- */
-
-      const lectureHeading =
-        document.querySelector(
-          ".section-heading h2"
-        );
-
-
-      if (lectureHeading) {
-
-        lectureHeading.textContent =
-          subject;
-
-      }
-
-
-      /* ---------------------------------------------------------
-         UPDATE COUNT
-         --------------------------------------------------------- */
-
-      const resultCount =
-        document.querySelector(
-          ".result-count"
-        );
-
-
-      if (resultCount) {
-
-        resultCount.textContent =
-          `${visibleCount} lecture${visibleCount === 1
-            ? ""
-            : "s"
-          }`;
-
-      }
-
-
-      /* ---------------------------------------------------------
-         UPDATE BREADCRUMB
-         --------------------------------------------------------- */
-
-      updatePath(
-        year,
-        semesterNumber,
-        subject
-      );
-
-
-      /* ---------------------------------------------------------
-         SCROLL TO LECTURES
-         --------------------------------------------------------- */
-
-      const lectureSection =
-        document.querySelector(
-          ".section-heading"
-        );
-
-
-      if (lectureSection) {
-
-        lectureSection.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
-
-      }
-
-    }
-
-    /* =========================================================
-       BREADCRUMB
-       ========================================================= */
-
-    function updatePath(
-      year,
-      semesterNumber,
-      subject = null
-    ) {
-
-      if (
-        !curriculum[year] ||
-        !curriculum[year].semesters[semesterNumber]
-      ) {
-        return;
-      }
-
-
-      const yearName =
-        curriculum[year].name;
-
-
-      const semesterName =
-        curriculum[year]
-          .semesters[semesterNumber]
-          .name;
-
-
-      path.innerHTML = `
-            <span>${yearName}</span>
-            <span>→</span>
-            <span>${semesterName}</span>
-            ${subject
-          ? `<span>→</span><span>${subject}</span>`
-          : ""
-        }
-        `;
-
-
-      path.classList.remove("hidden");
-    }
-
-
-    /* =========================================================
-       BACK BUTTON
-       ========================================================= */
-
-    backButton.addEventListener(
-      "click",
-      function () {
-
-        /* SUBJECT → SEMESTER */
-
-        if (
-          !subjectSelection
-            .classList
-            .contains("hidden")
-        ) {
-
-          subjectSelection
-            .classList
-            .add("hidden");
-
-          semesterSelection
-            .classList
-            .remove("hidden");
-
-
-          title.textContent =
-            curriculum[selectedYear].name;
-
-
-          description.textContent =
-            "Choose your semester.";
-
-
-          path.classList.add("hidden");
-
-          return;
-        }
-
-
-        /* SEMESTER → YEAR */
-
-        if (
-          !semesterSelection
-            .classList
-            .contains("hidden")
-        ) {
-
-          semesterSelection
-            .classList
-            .add("hidden");
-
-          yearSelection
-            .classList
-            .remove("hidden");
-
-
-          backButton
-            .classList
-            .add("hidden");
-
-
-          title.textContent =
-            "Choose your year";
-
-
-          description.textContent =
-            "Start by selecting your B.Tech year.";
-
-
-          path.classList.add("hidden");
-
-        }
-
-      }
-    );
-
-
-  });
-</script>
+</section>
+{% endif %}
 
 {% endblock %}
