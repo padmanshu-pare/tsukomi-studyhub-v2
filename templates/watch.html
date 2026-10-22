@@ -1567,10 +1567,7 @@
         statusEl.textContent =
           "✅ Lecture completed. Your notes are unlocked.";
 
-        // Open the lecture's Google Drive file directly after it is unlocked.
-        // This avoids returning the student to the lecture page through a
-        // server-side redirect.
-        downloadButton.href = notesUrl;
+        downloadButton.href = data.download_url;
 
         downloadButton.style.display = "inline-flex";
 

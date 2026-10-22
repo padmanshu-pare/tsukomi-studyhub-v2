@@ -20,7 +20,7 @@ The project also has a protected admin workspace, making it possible to manage t
 
 TSUKOMI StudyHub was built as a full-stack web application using Python and Flask for the backend, MongoDB for content and analytics storage, and HTML, CSS, JavaScript, and Jinja templates for the user interface. YouTube is integrated through the YouTube IFrame API, while Google Drive links are used to provide lecture notes.
 
-The project includes a responsive public StudyHub, search and academic filters, dynamic video pages, a secure admin dashboard, watch-progress handling, and analytics for video activity and notes downloads.
+The project includes a responsive public StudyHub, search and academic filters, dynamic video pages, a secure admin dashboard, watch-progress handling, and analytics for video activity and notes-link clicks.
 
 ## Skills demonstrated
 
