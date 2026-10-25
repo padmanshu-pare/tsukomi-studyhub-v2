@@ -1,7 +1,7 @@
 /* =========================================================
    TSUKOMI PADHAYEGA — USER FRONTEND THEME
    Public StudyHub only. Keep admin.css separate.
-   Palette: BLACK / YELLOW / PURPLE / WHITE
+   Palette: BLACK / YELLOW / WHITE
    ========================================================= */
 :root {
   --ts-black: #050505;
@@ -10,8 +10,6 @@
   --ts-panel-2: #151516;
   --ts-yellow: #ffd21c;
   --ts-yellow-2: #ffb800;
-  --ts-purple: #8b22ff;
-  --ts-purple-2: #5d18c7;
   --ts-white: #f8f8f5;
   --ts-soft: #d6d6d1;
   --ts-muted: #92928e;
@@ -34,7 +32,7 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--ts-white);
-  background: radial-gradient(circle at 8% -5%, rgba(139, 34, 255, .16), transparent 28rem), radial-gradient(circle at 92% 8%, rgba(255, 210, 28, .08), transparent 26rem), linear-gradient(180deg, #070707 0%, #030303 100%);
+  background: radial-gradient(circle at 8% -5%, rgba(255, 210, 28, .10), transparent 28rem), radial-gradient(circle at 92% 8%, rgba(255, 210, 28, .08), transparent 26rem), linear-gradient(180deg, #070707 0%, #030303 100%);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased
 }
@@ -198,7 +196,7 @@ h3 {
   right: -110px;
   top: 40px;
   border-radius: 50%;
-  background: radial-gradient(circle at center, rgba(139, 34, 255, .18), rgba(139, 34, 255, .05) 42%, transparent 70%);
+  background: radial-gradient(circle at center, rgba(255, 210, 28, .14), rgba(255, 210, 28, .04) 42%, transparent 70%);
   pointer-events: none
 }
 
@@ -289,7 +287,7 @@ h3 {
   inset: 0 0 auto auto;
   width: 240px;
   height: 240px;
-  background: radial-gradient(circle, rgba(139, 34, 255, .13), transparent 70%);
+  background: radial-gradient(circle, rgba(255, 210, 28, .10), transparent 70%);
   pointer-events: none
 }
 
@@ -353,7 +351,7 @@ body.study-navigation-loading #lectures {
   display: block;
   width: 32%;
   height: 100%;
-  background: linear-gradient(90deg, var(--ts-purple), var(--ts-yellow));
+  background: linear-gradient(90deg, var(--ts-yellow-2), var(--ts-yellow));
   box-shadow: 0 0 14px rgba(255, 210, 28, .55);
   transform: translateX(-110%)
 }
@@ -439,7 +437,7 @@ body.study-navigation-loading #lectures {
 .selection-card:hover {
   transform: translateY(-4px);
   border-color: rgba(255, 210, 28, .42);
-  background: linear-gradient(135deg, rgba(255, 210, 28, .07), rgba(139, 34, 255, .08));
+  background: linear-gradient(135deg, rgba(255, 210, 28, .07), rgba(255, 210, 28, .04));
   box-shadow: 0 16px 40px rgba(0, 0, 0, .32)
 }
 
@@ -512,8 +510,8 @@ body.study-navigation-loading #lectures {
 }
 
 .subject-icon-selector {
-  background: linear-gradient(135deg, var(--ts-purple), var(--ts-purple-2));
-  color: white
+  background: linear-gradient(135deg, var(--ts-yellow), var(--ts-yellow-2));
+  color: #080808
 }
 
 .selector-back {
@@ -793,8 +791,8 @@ body.study-navigation-loading #lectures {
 }
 
 .secondary-button:hover {
-  border-color: rgba(139, 34, 255, .55);
-  color: #c99aff
+  border-color: rgba(255, 210, 28, .55);
+  color: var(--ts-yellow)
 }
 
 .empty-state,
@@ -914,7 +912,7 @@ body:has(#player-wrapper) h1#videoTitle {
   width: 0;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--ts-yellow), var(--ts-purple));
+  background: linear-gradient(90deg, var(--ts-yellow), var(--ts-yellow-2));
   box-shadow: 0 0 20px rgba(255, 210, 28, .2);
   transition: width .15s linear
 }
@@ -946,9 +944,9 @@ body:has(#player-wrapper) h1#videoTitle {
   display: none;
   margin-top: 16px;
   padding: 16px;
-  border: 1px solid rgba(139, 34, 255, .28);
+  border: 1px solid rgba(255, 210, 28, .28);
   border-radius: 13px;
-  background: rgba(139, 34, 255, .06)
+  background: rgba(255, 210, 28, .06)
 }
 
 .start-box.show {
@@ -993,7 +991,7 @@ body:has(#player-wrapper) h1#videoTitle {
   padding: 18px;
   border: 1px solid rgba(82, 227, 154, .30);
   border-radius: 15px;
-  background: linear-gradient(135deg, rgba(82, 227, 154, .07), rgba(139, 34, 255, .035))
+  background: linear-gradient(135deg, rgba(82, 227, 154, .07), rgba(255, 210, 28, .035))
 }
 
 .unlock.show {
@@ -1248,7 +1246,7 @@ textarea {
 :root {
   --brand-yellow: #ffd21f;
   --brand-yellow-soft: rgba(255, 210, 31, 0.12);
-  --brand-purple: #8b5cf6;
+  --brand-yellow-2: #ffb800;
 
   --bg: #050505;
   --panel: #0d0d0f;
@@ -1258,7 +1256,7 @@ textarea {
   --border: rgba(255, 255, 255, 0.09);
 
   --accent: var(--brand-yellow);
-  --accent2: var(--brand-purple);
+  --accent2: var(--brand-yellow-2);
 }
 
 
@@ -1269,7 +1267,7 @@ textarea {
 body {
   background:
     radial-gradient(circle at 12% 8%,
-      rgba(139, 92, 246, 0.10),
+      rgba(255, 210, 31, 0.08),
       transparent 28%),
     radial-gradient(circle at 88% 15%,
       rgba(255, 210, 31, 0.07),
@@ -1559,7 +1557,7 @@ nav a:hover {
       rgba(255, 210, 31, 0.16),
       transparent 32%),
     radial-gradient(circle at 70% 70%,
-      rgba(139, 92, 246, 0.25),
+      rgba(255, 210, 31, 0.12),
       transparent 48%),
     #0b0b0d;
 
@@ -1567,7 +1565,7 @@ nav a:hover {
     1px solid rgba(255, 255, 255, 0.10);
 
   box-shadow:
-    0 0 80px rgba(139, 92, 246, 0.10),
+    0 0 80px rgba(255, 210, 31, 0.08),
     0 0 120px rgba(255, 210, 31, 0.05),
     inset 0 0 70px rgba(255, 255, 255, 0.025);
 
