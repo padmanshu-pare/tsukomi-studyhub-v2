@@ -8,45 +8,54 @@
       </div>
     </div>
 
-    <nav class="admin-nav">
+    <nav class="admin-nav" aria-label="Admin navigation">
       <div class="admin-nav-title">MAIN</div>
-      <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link">
+      <a href="{{ url_for('admin_dashboard') }}"
+        class="admin-nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}"
+        aria-label="Dashboard" title="Dashboard">
         <span class="admin-nav-icon">⌂</span>
         <span class="admin-nav-text">Dashboard</span>
       </a>
 
       <div class="admin-nav-title">CONTENT</div>
       <a href="{{ url_for('admin_content') }}"
-        class="admin-nav-link {% if request.endpoint == 'admin_content' %}active{% endif %}">
+        class="admin-nav-link {% if request.endpoint == 'admin_content' %}active{% endif %}"
+        aria-label="Content Library" title="Content Library">
         <span class="admin-nav-icon">▣</span>
         <span class="admin-nav-text">Content Library</span>
       </a>
       <a href="{{ url_for('admin_trash') }}"
-        class="admin-nav-link {% if request.endpoint == 'admin_trash' %}active{% endif %}">
+        class="admin-nav-link {% if request.endpoint == 'admin_trash' %}active{% endif %}"
+        aria-label="Trash" title="Trash">
         <span class="admin-nav-icon">▤</span>
         <span class="admin-nav-text">Trash</span>
       </a>
       <a href="{{ url_for('admin_analytics') }}"
-        class="admin-nav-link {% if request.endpoint == 'admin_analytics' %}active{% endif %}">
+        class="admin-nav-link {% if request.endpoint == 'admin_analytics' %}active{% endif %}"
+        aria-label="Analytics" title="Analytics">
         <span class="admin-nav-icon">▥</span>
         <span class="admin-nav-text">Analytics</span>
       </a>
       <a href="{{ url_for('admin_downloads') }}"
-        class="admin-nav-link {% if request.endpoint == 'admin_downloads' %}active{% endif %}">
+        class="admin-nav-link {% if request.endpoint == 'admin_downloads' %}active{% endif %}"
+        aria-label="Notes Downloads" title="Notes Downloads">
         <span class="admin-nav-icon">↓</span>
         <span class="admin-nav-text">Notes Downloads</span>
       </a>
-      <a href="{{ url_for('admin_dashboard') }}#publish" class="admin-nav-link">
+      <a href="{{ url_for('admin_dashboard') }}#publish" class="admin-nav-link"
+        aria-label="Publish Video" title="Publish Video">
         <span class="admin-nav-icon">＋</span>
         <span class="admin-nav-text">Publish Video</span>
       </a>
 
       <div class="admin-nav-title">SYSTEM</div>
-      <a href="{{ url_for('home') }}" target="_blank" class="admin-nav-link">
+      <a href="{{ url_for('home') }}" target="_blank" rel="noopener noreferrer" class="admin-nav-link"
+        aria-label="View StudyHub" title="View StudyHub">
         <span class="admin-nav-icon">↗</span>
         <span class="admin-nav-text">View StudyHub</span>
       </a>
-      <a href="{{ url_for('admin_logout') }}" class="admin-nav-link">
+      <a href="{{ url_for('admin_logout') }}" class="admin-nav-link"
+        aria-label="Logout" title="Logout">
         <span class="admin-nav-icon">⇥</span>
         <span class="admin-nav-text">Logout</span>
       </a>

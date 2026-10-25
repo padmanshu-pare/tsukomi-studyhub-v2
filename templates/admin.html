@@ -17,119 +17,7 @@
 
   <div class="admin-page">
 
-    <!-- =====================================================
-         SIDEBAR
-         ===================================================== -->
-
-    <aside class="admin-sidebar">
-
-      <div>
-
-        <div class="admin-brand">
-
-          <div class="admin-brand-icon">
-            ✦
-          </div>
-
-          <div class="admin-brand-text">
-
-            <strong>
-              TSUKOMI
-            </strong>
-
-            <span>
-              PADHAYEGA
-            </span>
-
-          </div>
-
-        </div>
-
-
-        <nav class="admin-nav">
-
-          <div class="admin-nav-title">
-            MAIN
-          </div>
-
-          <a href="{{ url_for('admin_dashboard') }}"
-            class="admin-nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
-            <span class="admin-nav-icon">⌂</span>
-            <span class="admin-nav-text">Dashboard</span>
-          </a>
-
-
-          <div class="admin-nav-title">
-            CONTENT
-          </div>
-
-          <a href="{{ url_for('admin_dashboard') }}#publish" class="admin-nav-link">
-            <span class="admin-nav-icon">＋</span>
-            <span class="admin-nav-text">Publish Video</span>
-          </a>
-
-          <a href="{{ url_for('admin_content') }}" class="admin-nav-link">
-            <span class="admin-nav-icon">▣</span>
-            <span class="admin-nav-text">Content Library</span>
-          </a>
-          <a href="{{ url_for('admin_trash') }}" class="admin-nav-link">
-            <span class="admin-nav-icon">▤</span>
-            <span class="admin-nav-text">Trash</span>
-          </a>
-          <a href="{{ url_for('admin_analytics') }}" class="admin-nav-link">
-            <span class="admin-nav-icon">▥</span>
-            <span class="admin-nav-text">Analytics</span>
-          </a>
-          <a href="{{ url_for('admin_downloads') }}" class="admin-nav-link">
-            <span class="admin-nav-icon">↓</span>
-            <span class="admin-nav-text">Notes Downloads</span>
-          </a>
-
-
-          <div class="admin-nav-title">
-            SYSTEM
-          </div>
-
-          <a href="{{ url_for('home') }}" target="_blank" class="admin-nav-link">
-            <span class="admin-nav-icon">↗</span>
-            <span class="admin-nav-text">View StudyHub</span>
-          </a>
-
-          <a href="{{ url_for('admin_logout') }}" class="admin-nav-link">
-            <span class="admin-nav-icon">⇥</span>
-            <span class="admin-nav-text">Logout</span>
-          </a>
-
-        </nav>
-
-      </div>
-
-
-      <div class="admin-sidebar-bottom">
-
-        <div class="admin-user">
-
-          <div class="admin-avatar">
-            A
-          </div>
-
-          <div>
-
-            <strong>
-              Administrator
-            </strong>
-
-            <span>
-              StudyHub Admin
-            </span>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </aside>
+    {% include "admin_sidebar.html" %}
 
 
     <!-- =====================================================
@@ -675,37 +563,42 @@
 
                   <div class="admin-video-actions">
 
+                    {% if video.published %}
                     <a class="admin-small-button" href="{{ url_for('watch', slug=video.slug) }}" target="_blank"
-                      title="Preview">
-                      👁
+                      rel="noopener noreferrer">
+                      <span aria-hidden="true">↗</span> Preview
+                    </a>
+                    {% endif %}
+
+
+                    <a class="admin-small-button" href="{{ url_for('edit_video', video_id=video._id) }}">
+                      <span aria-hidden="true">✎</span> Edit
                     </a>
 
 
-                    <a class="admin-small-button" href="{{ url_for('edit_video', video_id=video._id) }}" title="Edit">
-                      ✏
-                    </a>
-
-
-                    <form method="post" action="{{ url_for('toggle_video', video_id=video._id) }}">
+                    <form class="admin-video-action-form" method="post"
+                      action="{{ url_for('toggle_video', video_id=video._id) }}">
                       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-                      <button class="admin-small-button" type="submit" title="Toggle status">
+                      <button class="admin-small-button {% if video.published %}status-action{% else %}publish-action{% endif %}"
+                        type="submit">
                         {% if video.published %}
-                        🔒
+                        <span aria-hidden="true">◉</span> Unpublish
                         {% else %}
-                        🟢
+                        <span aria-hidden="true">●</span> Publish
                         {% endif %}
                       </button>
 
                     </form>
 
 
-                    <form method="post" action="{{ url_for('delete_video', video_id=video._id) }}"
+                    <form class="admin-video-action-form" method="post"
+                      action="{{ url_for('delete_video', video_id=video._id) }}"
                       onsubmit="return confirm('Move this video to Trash? You can restore it later.');">
                       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-                      <button class="admin-small-button danger" type="submit" title="Move to Trash">
-                        🗑
+                      <button class="admin-small-button danger" type="submit">
+                        <span aria-hidden="true">⌫</span> Trash
                       </button>
 
                     </form>
