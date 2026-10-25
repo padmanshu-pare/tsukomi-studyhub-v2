@@ -6,13 +6,57 @@
 
 <section class="hero hero-home">
   <div class="hero-copy">
-    <p class="eyebrow">RGPV • B.Tech • Exam Preparation</p>
-    <h1>Learn from the lecture.<span>Unlock the notes.</span></h1>
-    <p>Short, exam-focused lectures and notes for your RGPV preparation — all in one place.</p>
+    <p class="eyebrow hero-kicker"><span aria-hidden="true"></span> RGPV · B.Tech · Exam Preparation</p>
+    <h1>Make every study session <span>count.</span></h1>
+    <p class="hero-description">Focused RGPV lectures, clear progress, and notes that unlock as you learn — all in one place.</p>
+    <div class="hero-actions">
+      <a class="hero-button" href="#study-selector">Explore subjects <span aria-hidden="true">→</span></a>
+      <a class="hero-secondary" href="#lecture-search">Find a lecture</a>
+    </div>
+    <div class="hero-benefits" aria-label="StudyHub features">
+      <span><span aria-hidden="true">✓</span> Exam-focused videos</span>
+      <span><span aria-hidden="true">✓</span> Progress that counts</span>
+      <span><span aria-hidden="true">✓</span> Notes after you watch</span>
+    </div>
+  </div>
+
+  <div class="hero-visual" aria-label="How StudyHub helps you study">
+    <div class="hero-orbit hero-orbit-one"></div>
+    <div class="hero-orbit hero-orbit-two"></div>
+    <div class="hero-study-card">
+      <div class="hero-card-topline">
+        <span class="hero-card-mark" aria-hidden="true">✦</span>
+        <span>YOUR STUDY SPACE</span>
+        <span class="hero-live"><span></span> READY</span>
+      </div>
+      <div class="hero-card-heading">Learn at your pace.<br><span>Stay on track.</span></div>
+      <div class="hero-steps">
+        <div class="hero-step">
+          <span class="hero-step-number">01</span>
+          <span class="hero-step-icon" aria-hidden="true">▶</span>
+          <span class="hero-step-copy"><strong>Watch a lecture</strong><small>Short and focused lessons</small></span>
+          <span class="hero-step-check" aria-hidden="true">✓</span>
+        </div>
+        <div class="hero-step">
+          <span class="hero-step-number">02</span>
+          <span class="hero-step-icon" aria-hidden="true">↗</span>
+          <span class="hero-step-copy"><strong>Build your progress</strong><small>Every watched minute counts</small></span>
+          <span class="hero-step-check" aria-hidden="true">✓</span>
+        </div>
+        <div class="hero-step">
+          <span class="hero-step-number">03</span>
+          <span class="hero-step-icon" aria-hidden="true">▤</span>
+          <span class="hero-step-copy"><strong>Unlock your notes</strong><small>Ready when you finish watching</small></span>
+          <span class="hero-step-lock" aria-hidden="true">⌑</span>
+        </div>
+      </div>
+      <div class="hero-card-footer"><span>ONE STEP AT A TIME</span><span class="hero-card-progress"><span></span></span><strong>01 / 03</strong></div>
+    </div>
+    <div class="hero-float-note"><span aria-hidden="true">✦</span> Learn. Track. Succeed.</div>
   </div>
 </section>
 
-<section class="library-search panel" aria-label="Search lecture library">
+<section class="library-search panel" id="lecture-search" aria-label="Search lecture library">
   <form method="get" action="{{ url_for('home') }}" class="search-form">
     <label class="search-field">
       <span class="sr-only">Search lectures</span>
