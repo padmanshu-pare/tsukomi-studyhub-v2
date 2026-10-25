@@ -127,8 +127,8 @@
 
             background:
                 linear-gradient(145deg,
-                    rgba(255, 255, 255, 0.98),
-                    rgba(255, 248, 251, 0.98));
+                    var(--admin-surface),
+                    var(--admin-surface-2));
         }
 
         .library-stat-label {
@@ -256,7 +256,7 @@
 
             outline: none;
 
-            background: #fffafd;
+            background: var(--admin-surface-2);
             color: var(--admin-text);
 
             font: inherit;
@@ -272,7 +272,7 @@
         }
 
         .library-search::placeholder {
-            color: #9b8791;
+            color: var(--admin-muted);
         }
 
         .library-search:focus,
@@ -298,8 +298,8 @@
 
             background:
                 linear-gradient(145deg,
-                    rgba(255, 255, 255, 0.98),
-                    rgba(255, 248, 251, 0.98));
+                    var(--admin-surface),
+                    var(--admin-surface-2));
         }
 
 
@@ -375,7 +375,7 @@
         .library-bulk-panel {
             border: 1px solid var(--admin-border);
             border-radius: 12px;
-            background: #fffafd;
+            background: var(--admin-surface-2);
         }
 
         .library-bulk-toolbar {
@@ -409,7 +409,7 @@
             padding: 0 13px;
             border: 1px solid var(--admin-border);
             border-radius: 8px;
-            background: #fff;
+            background: var(--admin-surface);
             color: var(--admin-text);
             font: inherit;
             font-size: 11px;
@@ -464,7 +464,7 @@
             padding: 14px;
             border: 1px solid var(--admin-border);
             border-radius: 9px;
-            background: #fff;
+            background: var(--admin-surface);
         }
 
         .library-bulk-item h3 {
@@ -496,7 +496,7 @@
             border: 1px solid var(--admin-border);
             border-radius: 7px;
             padding: 9px 10px;
-            background: #fffafd;
+            background: var(--admin-surface-2);
             color: var(--admin-text);
             font: inherit;
             font-size: 12px;
@@ -535,7 +535,7 @@
 
             border-radius: 8px;
 
-            background: #fffafd;
+            background: var(--admin-surface-2);
         }
 
         .library-thumb img {
@@ -619,7 +619,7 @@
         .library-subject {
             overflow: hidden;
 
-            color: #59434d;
+            color: var(--admin-text);
 
             font-size: 10px;
             font-weight: 700;
@@ -653,7 +653,7 @@
 
             background: rgba(197, 60, 112, 0.07);
 
-            color: #59434d;
+            color: var(--admin-text);
 
             font-size: 9px;
             font-weight: 750;
@@ -734,8 +734,8 @@
             border: 1px solid var(--admin-border);
             border-radius: 7px;
 
-            background: #fff4f8;
-            color: #59434d;
+            background: var(--admin-surface-2);
+            color: var(--admin-text);
 
             text-decoration: none;
 
@@ -753,9 +753,9 @@
         .library-action:hover {
             color: var(--admin-text);
 
-            border-color: #d9b7c5;
+            border-color: var(--admin-pink);
 
-            background: #f8e8ef;
+            background: var(--admin-surface);
         }
 
         .library-action.danger:hover {

@@ -4,17 +4,17 @@
    ========================================================= */
 
 :root {
-    --admin-bg: #fff7fa;
-    --admin-sidebar: #fff0f5;
-    --admin-surface: #ffffff;
-    --admin-surface-2: #fff8fb;
-    --admin-border: #efd6e0;
+    --admin-bg: #0d0b10;
+    --admin-sidebar: #121016;
+    --admin-surface: #19161e;
+    --admin-surface-2: #211b25;
+    --admin-border: #3a2b37;
 
-    --admin-text: #35232c;
-    --admin-muted: #806b75;
+    --admin-text: #f7edf2;
+    --admin-muted: #b6a6b0;
 
-    --admin-pink: #c53c70;
-    --admin-pink-dark: #a82d5d;
+    --admin-pink: #e76b9a;
+    --admin-pink-dark: #f08ab0;
 
     --admin-green: #36d98a;
     --admin-yellow: #f4bd4f;
@@ -149,7 +149,7 @@ body {
 .admin-nav-title {
     margin: 0 10px 9px;
 
-    color: #927d87;
+    color: var(--admin-muted);
 
     font-size: 10px;
     font-weight: 800;
@@ -395,7 +395,7 @@ body {
 .admin-stat-meta {
     margin-top: 6px;
 
-    color: #927d87;
+    color: var(--admin-muted);
     font-size: 10px;
 }
 
@@ -430,8 +430,8 @@ body {
 
     background:
         linear-gradient(145deg,
-            rgba(255, 255, 255, 0.98),
-            rgba(255, 248, 251, 0.98));
+            var(--admin-surface),
+            var(--admin-surface-2));
 
     overflow: hidden;
 }
@@ -488,7 +488,7 @@ body {
 }
 
 .admin-field label {
-    color: #59434d;
+    color: var(--admin-text);
 
     font-size: 11px;
     font-weight: 700;
@@ -502,7 +502,7 @@ body {
     border: 1px solid var(--admin-border);
     border-radius: 9px;
 
-    background: #fffafd;
+    background: var(--admin-surface-2);
     color: var(--admin-text);
 
     padding: 12px 13px;
@@ -529,7 +529,7 @@ body {
 
 .admin-field input::placeholder,
 .admin-field textarea::placeholder {
-    color: #9b8791;
+    color: var(--admin-muted);
 }
 
 .admin-field input:focus,
@@ -556,7 +556,7 @@ body {
     background:
         linear-gradient(135deg,
             var(--admin-pink),
-            #df7ea1);
+            #c84e7e);
 
     color: white;
 
@@ -577,7 +577,7 @@ body {
 }
 
 .admin-button.secondary {
-    background: #f8e8ef;
+    background: var(--admin-surface-2);
     border: 1px solid var(--admin-border);
 }
 
@@ -687,7 +687,7 @@ body {
     border: 1px solid var(--admin-border);
     border-radius: 8px;
 
-    background: #fffafd;
+    background: var(--admin-surface-2);
     color: var(--admin-text);
 
     padding: 0 11px;
@@ -730,7 +730,7 @@ body {
 
     border-radius: 7px;
 
-    background: #fffafd;
+    background: var(--admin-surface-2);
 }
 
 .admin-video-info {
@@ -780,8 +780,8 @@ body {
     border: 1px solid var(--admin-border);
     border-radius: 7px;
 
-    background: #fff4f8;
-    color: #59434d;
+    background: var(--admin-surface-2);
+    color: var(--admin-text);
 
     text-decoration: none;
 
@@ -794,7 +794,7 @@ body {
 
 .admin-small-button:hover {
     color: var(--admin-text);
-    border-color: #d9b7c5;
+    border-color: var(--admin-pink);
 }
 
 .admin-small-button.danger:hover {
@@ -992,7 +992,7 @@ body {
 
 /* Public-base pages that load admin.css (admin analytics and login). */
 .nav {
-    background: rgba(255, 240, 245, 0.96);
+    background: rgba(18, 16, 22, 0.96);
     border-bottom-color: var(--admin-border);
 }
 
@@ -1033,7 +1033,7 @@ footer {
 
 .auth-card input {
     border-color: var(--admin-border);
-    background: #fffafd;
+    background: var(--admin-surface-2);
     color: var(--admin-text);
 }
 
@@ -1043,7 +1043,7 @@ footer {
 }
 
 .auth-card .button {
-    background: linear-gradient(135deg, var(--admin-pink), #df7ea1);
+    background: linear-gradient(135deg, var(--admin-pink), #c84e7e);
     color: #fff;
 }
 
@@ -1260,7 +1260,7 @@ footer {
     width: 100%;
     height: 14px;
     border-radius: 999px;
-    background: #f2e3e9;
+    background: var(--admin-surface-2);
     overflow: hidden;
 }
 
@@ -1270,8 +1270,8 @@ footer {
     max-width: 100%;
     border-radius: inherit;
     background: linear-gradient(90deg,
-            #e38aaa,
-            #c53c70);
+            #f08ab0,
+            #d65083);
     transition: width 0.5s ease;
 }
 

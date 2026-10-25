@@ -67,9 +67,9 @@
         }
 
         .edit-back:hover {
-            color: white;
+            color: var(--admin-text);
             border-color: var(--admin-pink);
-            background: rgba(197, 60, 112, .06);
+            background: rgba(231, 107, 154, .12);
         }
 
         /* =====================================================
@@ -79,8 +79,8 @@
         .edit-card {
             background:
                 linear-gradient(145deg,
-                    rgba(255, 255, 255, .98),
-                    rgba(255, 248, 251, .98));
+                    var(--admin-surface),
+                    var(--admin-surface-2));
 
             border: 1px solid var(--admin-border);
             border-radius: 18px;
@@ -95,7 +95,7 @@
 
         .edit-card-header h2 {
             margin: 0;
-            color: white;
+            color: var(--admin-text);
             font-size: 19px;
         }
 
@@ -182,13 +182,13 @@
         .field label {
             display: block;
             margin-bottom: 7px;
-            color: #59434d;
+            color: var(--admin-text);
             font-size: 12px;
             font-weight: 700;
         }
 
         .optional {
-            color: #927d87;
+            color: var(--admin-muted);
             font-weight: 500;
             margin-left: 4px;
         }
@@ -204,7 +204,7 @@
             border: 1px solid var(--admin-border);
             border-radius: 10px;
 
-            background: #fffafd;
+            background: var(--admin-surface-2);
             color: var(--admin-text);
 
             font-family: inherit;
@@ -220,7 +220,7 @@
 
         .field input::placeholder,
         .field textarea::placeholder {
-            color: #9b8791;
+            color: var(--admin-muted);
         }
 
         .field input:focus,
@@ -231,7 +231,7 @@
             box-shadow:
                 0 0 0 3px rgba(197, 60, 112, .08);
 
-            background: #fff7fa;
+            background: var(--admin-surface);
         }
 
         .field textarea {
@@ -245,7 +245,7 @@
         }
 
         .field select option {
-            background: #fffafd;
+            background: var(--admin-surface-2);
             color: var(--admin-text);
         }
 
@@ -285,7 +285,7 @@
             border: 1px solid var(--admin-border);
             border-radius: 11px;
 
-            background: #fffafd;
+            background: var(--admin-surface-2);
 
             cursor: pointer;
 
@@ -293,7 +293,7 @@
         }
 
         .status-label:hover {
-            border-color: #d9b7c5;
+            border-color: var(--admin-pink);
         }
 
         .status-dot {
@@ -388,13 +388,13 @@
 
         .btn-secondary:hover {
             color: white;
-            border-color: #d9b7c5;
+            border-color: var(--admin-pink);
         }
 
         .btn-primary {
             border: 1px solid var(--admin-pink);
-            background: linear-gradient(135deg, var(--admin-pink), #df7ea1);
-            color: white;
+            background: linear-gradient(135deg, var(--admin-pink), #c84e7e);
+            color: #fff;
 
             box-shadow:
                 0 8px 25px rgba(197, 60, 112, .18);
@@ -402,7 +402,7 @@
 
         .btn-primary:hover {
             transform: translateY(-1px);
-            background: #df7ea1;
+            background: #c84e7e;
             box-shadow:
                 0 12px 30px rgba(197, 60, 112, .25);
         }
@@ -421,7 +421,7 @@
             border: 1px solid var(--admin-border);
             border-radius: 12px;
 
-            background: #fffafd;
+            background: var(--admin-surface-2);
         }
 
         .current-video img {
