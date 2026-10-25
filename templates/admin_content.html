@@ -636,6 +636,13 @@
             font-size: 9px;
         }
 
+        .library-content-checks {
+            margin-top: 7px;
+            color: var(--admin-yellow);
+            font-size: 9px;
+            font-weight: 800;
+        }
+
 
         /* =========================================================
            UNIT
@@ -1106,6 +1113,9 @@
                         ＋ Add Video
 
                     </a>
+                    <a href="{{ url_for('admin_trash') }}" class="library-add-button">
+                        View Trash
+                    </a>
 
                 </header>
 
@@ -1452,6 +1462,13 @@
 
                                 </div>
 
+                                {% if video.content_issues %}
+                                <div class="library-content-checks" title="{{ video.content_issues|join(', ') }}">
+                                    <span aria-hidden="true">⚠</span>
+                                    {{ video.content_issues|join(' · ') }}
+                                </div>
+                                {% endif %}
+
                             </div>
 
 
@@ -1548,10 +1565,10 @@
 
                                 <form method="post" action="{{ url_for('delete_video', video_id=video._id) }}"
                                     class="library-action-form"
-                                    onsubmit="return confirm('Delete this video permanently?');">
+                                    onsubmit="return confirm('Move this video to Trash? You can restore it later.');">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-                                    <button type="submit" class="library-action danger" title="Delete">
+                                    <button type="submit" class="library-action danger" title="Move to Trash">
                                         🗑
                                     </button>
 

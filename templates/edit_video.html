@@ -560,6 +560,27 @@
 
                 </header>
 
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="admin-flash{% if category == 'error' %} error{% endif %}" role="status">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                {% if content_issues %}
+                <div class="admin-flash error" role="status">
+                    <strong>Publishing checks need attention:</strong>
+                    {{ content_issues|join("; ") }}.
+                </div>
+                {% else %}
+                <div class="admin-flash" role="status">
+                    All publishing checks passed.
+                </div>
+                {% endif %}
+
 
 
                 <!-- EDIT CARD -->
@@ -836,7 +857,7 @@
                                         placeholder="https://youtube.com/watch?v=...">
 
                                     <div class="field-help">
-                                        Required only when publishing. Drafts can be saved without a YouTube URL.
+                                        A valid YouTube URL is required. Drafts can be saved before the other publishing checks are complete.
                                     </div>
 
                                 </div>

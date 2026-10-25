@@ -163,6 +163,44 @@ def slugify(value):
     return value
 
 
+def video_content_issues(video, exclude_id=None):
+    """Return publishing issues that need admin attention for one video."""
+    issues = []
+
+    notes_url = str(video.get("notes_url") or "").strip()
+    if not notes_url.startswith(("http://", "https://")):
+        issues.append("Missing or invalid notes link")
+
+    if not str(video.get("description") or "").strip():
+        issues.append("Description is blank")
+
+    missing_subject_details = [
+        label
+        for key, label in (
+            ("year", "year"),
+            ("semester", "semester"),
+            ("subject", "subject"),
+            ("unit", "unit"),
+        )
+        if not str(video.get(key) or "").strip()
+    ]
+    if missing_subject_details:
+        issues.append("Missing " + ", ".join(missing_subject_details))
+
+    youtube_id = str(video.get("youtube_id") or "").strip()
+    if youtube_id:
+        duplicate_filter = {
+            "youtube_id": youtube_id,
+            "archived_at": {"$exists": False},
+        }
+        if exclude_id is not None:
+            duplicate_filter["_id"] = {"$ne": exclude_id}
+        if db.videos.find_one(duplicate_filter, {"_id": 1}):
+            issues.append("Duplicate YouTube video")
+
+    return issues
+
+
 def extract_youtube_id(url):
     """Accept common YouTube URL formats and return the video ID."""
     if not url:
@@ -384,7 +422,7 @@ def home():
     except ValueError:
         page = 1
 
-    filters = {"published": True}
+    filters = {"published": True, "archived_at": {"$exists": False}}
     if selected_year:
         filters["year"] = selected_year
     if selected_semester:
@@ -417,7 +455,7 @@ def home():
             {"description": {"$regex": safe_query, "$options": "i"}},
         ]})
 
-    browse_filters = {"published": True}
+    browse_filters = {"published": True, "archived_at": {"$exists": False}}
     if selected_semester:
         browse_filters.update(_semester_filter(selected_semester))
 
@@ -592,6 +630,7 @@ def home():
                 {
                     "$match": {
                         "published": True,
+                        "archived_at": {"$exists": False},
                         "subject": {"$nin": ["", None]},
                     }
                 },
@@ -656,7 +695,10 @@ def sitemap():
     pages = [url_for("home", _external=True)]
     pages.extend(
         url_for("watch", slug=video["slug"], _external=True)
-        for video in db.videos.find({"published": True}, {"slug": 1})
+        for video in db.videos.find(
+            {"published": True, "archived_at": {"$exists": False}},
+            {"slug": 1},
+        )
     )
     xml = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     xml.extend(f"<url><loc>{page}</loc></url>" for page in pages)
@@ -667,12 +709,17 @@ def sitemap():
 @app.route("/watch/<slug>")
 def watch(slug):
     require_db()
-    video = db.videos.find_one({"slug": slug, "published": True})
+    video = db.videos.find_one({
+        "slug": slug,
+        "published": True,
+        "archived_at": {"$exists": False},
+    })
     if not video:
         abort(404)
 
     related_filter = {
         "published": True,
+        "archived_at": {"$exists": False},
         "_id": {"$ne": video["_id"]},
     }
     if video.get("subject"):
@@ -697,6 +744,7 @@ def watch_start(video_id):
         video = db.videos.find_one({
             "_id": ObjectId(video_id),
             "published": True,
+            "archived_at": {"$exists": False},
         })
     except Exception:
         abort(404)
@@ -758,6 +806,7 @@ def watch_progress(video_id):
             video = db.videos.find_one({
                 "_id": ObjectId(video_id),
                 "published": True,
+                "archived_at": {"$exists": False},
             })
         except Exception:
             video = None
@@ -811,6 +860,7 @@ def unlock(video_id):
         video = db.videos.find_one({
             "_id": ObjectId(video_id),
             "published": True,
+            "archived_at": {"$exists": False},
         })
     except Exception:
         abort(404)
@@ -859,7 +909,8 @@ def download_redirect(video_id):
     try:
         video = db.videos.find_one({
             "_id": ObjectId(video_id),
-            "published": True
+            "published": True,
+            "archived_at": {"$exists": False},
         })
     except Exception:
         abort(404)
@@ -943,14 +994,19 @@ def admin_logout():
 def admin_dashboard():
     require_db()
 
-    videos = list(db.videos.find().sort("created_at", -1))
-    total_videos = db.videos.count_documents({})
-    published = db.videos.count_documents({"published": True})
+    active_filter = {"archived_at": {"$exists": False}}
+    videos = list(db.videos.find(active_filter).sort("created_at", -1))
+    for video in videos:
+        video["content_issues"] = video_content_issues(video, video["_id"])
+    total_videos = db.videos.count_documents(active_filter)
+    published = db.videos.count_documents({**active_filter, "published": True})
     drafts = db.videos.count_documents({
+        **active_filter,
         "published": False,
         "status": "draft",
     })
     disabled = db.videos.count_documents({
+        **active_filter,
         "published": False,
         "status": {"$ne": "draft"},
     })
@@ -975,14 +1031,19 @@ def admin_dashboard():
 def admin_content():
     require_db()
 
-    videos = list(db.videos.find().sort("created_at", -1))
-    total_videos = db.videos.count_documents({})
-    published = db.videos.count_documents({"published": True})
+    active_filter = {"archived_at": {"$exists": False}}
+    videos = list(db.videos.find(active_filter).sort("created_at", -1))
+    for video in videos:
+        video["content_issues"] = video_content_issues(video, video["_id"])
+    total_videos = db.videos.count_documents(active_filter)
+    published = db.videos.count_documents({**active_filter, "published": True})
     drafts = db.videos.count_documents({
+        **active_filter,
         "published": False,
         "status": "draft",
     })
     disabled = db.videos.count_documents({
+        **active_filter,
         "published": False,
         "status": {"$ne": "draft"},
     })
@@ -996,6 +1057,17 @@ def admin_content():
         disabled=disabled,
         required_watch_seconds=REQUIRED_WATCH_SECONDS,
     )
+
+
+@app.route("/admin/trash")
+@admin_required
+def admin_trash():
+    require_db()
+    videos = list(
+        db.videos.find({"archived_at": {"$exists": True}})
+        .sort("archived_at", -1)
+    )
+    return render_template("admin_trash.html", videos=videos)
 
 
 @app.route("/admin/videos/bulk-edit", methods=["POST"])
@@ -1029,7 +1101,10 @@ def bulk_edit_videos():
         updates.append((ObjectId(video_id), title, description))
 
     object_ids = [video_id for video_id, _, _ in updates]
-    existing_count = db.videos.count_documents({"_id": {"$in": object_ids}})
+    existing_count = db.videos.count_documents({
+        "_id": {"$in": object_ids},
+        "archived_at": {"$exists": False},
+    })
     if existing_count != len(updates):
         flash("One or more selected videos no longer exist. No videos were changed.", "error")
         return redirect(url_for("admin_content"))
@@ -1037,7 +1112,7 @@ def bulk_edit_videos():
     updated_at = now()
     for video_id, title, description in updates:
         db.videos.update_one(
-            {"_id": video_id},
+            {"_id": video_id, "archived_at": {"$exists": False}},
             {"$set": {
                 "title": title,
                 "description": description,
@@ -1070,9 +1145,9 @@ def create_video():
     if status not in {"published", "draft"}:
         status = "published"
 
-    if not title or not slug or not youtube_id or not notes_url:
+    if not title or not slug or not youtube_id:
         flash(
-            "Title, valid YouTube URL and notes URL are required.",
+            "Title and a valid YouTube URL are required.",
             "error",
         )
         return redirect(url_for("admin_dashboard"))
@@ -1098,6 +1173,12 @@ def create_video():
         "updated_at": now(),
     }
 
+    if status == "published":
+        issues = video_content_issues(video)
+        if issues:
+            flash("Cannot publish yet: " + "; ".join(issues) + ".", "error")
+            return redirect(url_for("admin_dashboard"))
+
     db.videos.insert_one(video)
 
     if status == "draft":
@@ -1114,7 +1195,10 @@ def edit_video(video_id):
     require_db()
 
     try:
-        video = db.videos.find_one({"_id": ObjectId(video_id)})
+        video = db.videos.find_one({
+            "_id": ObjectId(video_id),
+            "archived_at": {"$exists": False},
+        })
     except Exception:
         abort(404)
 
@@ -1137,7 +1221,7 @@ def edit_video(video_id):
         if status not in {"published", "draft"}:
             status = "published"
 
-        if not title or not slug or not youtube_id or not notes_url:
+        if not title or not slug or not youtube_id:
             flash("Please fill all required fields correctly.", "error")
             return redirect(url_for("edit_video", video_id=video_id))
 
@@ -1153,21 +1237,33 @@ def edit_video(video_id):
             )
             return redirect(url_for("edit_video", video_id=video_id))
 
+        updated_video = {
+            "title": title,
+            "slug": slug,
+            "year": year,
+            "semester": semester,
+            "subject": subject,
+            "unit": unit,
+            "description": description,
+            "youtube_url": youtube_url,
+            "youtube_id": youtube_id,
+            "notes_url": notes_url,
+            "status": status,
+            "published": status == "published",
+        }
+        if status == "published":
+            issues = video_content_issues(
+                updated_video,
+                exclude_id=video["_id"],
+            )
+            if issues:
+                flash("Cannot publish yet: " + "; ".join(issues) + ".", "error")
+                return redirect(url_for("edit_video", video_id=video_id))
+
         db.videos.update_one(
             {"_id": video["_id"]},
             {"$set": {
-                "title": title,
-                "slug": slug,
-                "year": year,
-                "semester": semester,
-                "subject": subject,
-                "unit": unit,
-                "description": description,
-                "youtube_url": youtube_url,
-                "youtube_id": youtube_id,
-                "notes_url": notes_url,
-                "status": status,
-                "published": status == "published",
+                **updated_video,
                 "updated_at": now(),
             }},
         )
@@ -1175,7 +1271,11 @@ def edit_video(video_id):
         flash("Video updated successfully.", "success")
         return redirect(url_for("admin_dashboard"))
 
-    return render_template("edit_video.html", video=video)
+    return render_template(
+        "edit_video.html",
+        video=video,
+        content_issues=video_content_issues(video, video["_id"]),
+    )
 
 
 @app.route("/admin/videos/<video_id>/delete", methods=["POST"])
@@ -1184,25 +1284,10 @@ def delete_video(video_id):
     require_db()
 
     try:
-        video = db.videos.find_one({"_id": ObjectId(video_id)})
-    except Exception:
-        abort(404)
-
-    if not video:
-        abort(404)
-
-    db.videos.delete_one({"_id": video["_id"]})
-    flash(f'Video "{video["title"]}" deleted.', "success")
-    return redirect(url_for("admin_dashboard"))
-
-
-@app.route("/admin/videos/<video_id>/toggle", methods=["POST"])
-@admin_required
-def toggle_video(video_id):
-    require_db()
-
-    try:
-        video = db.videos.find_one({"_id": ObjectId(video_id)})
+        video = db.videos.find_one({
+            "_id": ObjectId(video_id),
+            "archived_at": {"$exists": False},
+        })
     except Exception:
         abort(404)
 
@@ -1212,7 +1297,99 @@ def toggle_video(video_id):
     db.videos.update_one(
         {"_id": video["_id"]},
         {"$set": {
-            "published": not video.get("published", True),
+            "published": False,
+            "archived_at": now(),
+            "updated_at": now(),
+        }},
+    )
+    flash(f'Video "{video["title"]}" moved to trash. You can restore it later.', "success")
+    return redirect(url_for("admin_content"))
+
+
+@app.route("/admin/videos/<video_id>/restore", methods=["POST"])
+@admin_required
+def restore_video(video_id):
+    require_db()
+
+    try:
+        video = db.videos.find_one({
+            "_id": ObjectId(video_id),
+            "archived_at": {"$exists": True},
+        })
+    except Exception:
+        abort(404)
+
+    if not video:
+        abort(404)
+
+    was_published = video.get("status") == "published"
+    db.videos.update_one(
+        {"_id": video["_id"]},
+        {
+            "$unset": {"archived_at": ""},
+            "$set": {
+                "published": False,
+                "status": "disabled" if was_published else video.get("status", "draft"),
+                "updated_at": now(),
+            },
+        },
+    )
+    flash(
+        f'Video "{video["title"]}" restored as unpublished. Review its content checks before publishing.',
+        "success",
+    )
+    return redirect(url_for("admin_trash"))
+
+
+@app.route("/admin/videos/<video_id>/purge", methods=["POST"])
+@admin_required
+def purge_video(video_id):
+    require_db()
+
+    try:
+        video = db.videos.find_one({
+            "_id": ObjectId(video_id),
+            "archived_at": {"$exists": True},
+        })
+    except Exception:
+        abort(404)
+
+    if not video:
+        abort(404)
+
+    db.videos.delete_one({"_id": video["_id"]})
+    flash(f'Video "{video["title"]}" permanently deleted.', "success")
+    return redirect(url_for("admin_trash"))
+
+
+@app.route("/admin/videos/<video_id>/toggle", methods=["POST"])
+@admin_required
+def toggle_video(video_id):
+    require_db()
+
+    try:
+        video = db.videos.find_one({
+            "_id": ObjectId(video_id),
+            "archived_at": {"$exists": False},
+        })
+    except Exception:
+        abort(404)
+
+    if not video:
+        abort(404)
+
+    if not video.get("published", True):
+        issues = video_content_issues(video, video["_id"])
+        if issues:
+            flash("Cannot publish yet: " + "; ".join(issues) + ".", "error")
+            return redirect(url_for("admin_content"))
+
+    is_publishing = not video.get("published", True)
+    db.videos.update_one(
+        {"_id": video["_id"]},
+        {"$set": {
+            "published": is_publishing,
+            "status": "published" if is_publishing else "disabled",
             "updated_at": now(),
         }},
     )
@@ -1278,7 +1455,7 @@ def sync_youtube():
                 if not existing:
                     if db.videos.find_one({"slug": slug}):
                         slug = f"{slug}-{vid_id[:4]}"
-                    db.videos.insert_one({
+                    synced_video = {
                         "title": title,
                         "slug": slug,
                         "year": "2nd Year",
@@ -1289,11 +1466,16 @@ def sync_youtube():
                         "youtube_url": f"https://www.youtube.com/watch?v={vid_id}",
                         "youtube_id": vid_id,
                         "notes_url": notes_link,
-                        "status": "published",
-                        "published": True,
+                        "status": "draft",
+                        "published": False,
                         "created_at": now(),
                         "updated_at": now(),
-                    })
+                    }
+                    issues = video_content_issues(synced_video)
+                    if not issues:
+                        synced_video["status"] = "published"
+                        synced_video["published"] = True
+                    db.videos.insert_one(synced_video)
                     added_count += 1
                 else:
                     db.videos.update_one(
@@ -1309,7 +1491,11 @@ def sync_youtube():
                     )
                     updated_count += 1
 
-        flash(f"YouTube Sync Complete: {added_count} new videos added, {updated_count} updated.", "success")
+        flash(
+            f"YouTube Sync Complete: {added_count} new videos added, "
+            f"{updated_count} updated. New videos with content issues were saved as drafts.",
+            "success",
+        )
     except Exception as exc:
         flash(f"Sync failed: {exc}", "error")
 
@@ -1402,6 +1588,63 @@ def admin_analytics():
         completion_rate=completion_rate,
         subject_stats=subject_stats,
         lecture_stats=lecture_stats,
+    )
+
+
+@app.route("/admin/downloads")
+@admin_required
+def admin_downloads():
+    require_db()
+
+    events = db.analytics_events
+    grouped_downloads = list(events.aggregate([
+        {"$match": {"event": "notes_download"}},
+        {"$group": {
+            "_id": "$video_id",
+            "title": {"$first": "$video_title"},
+            "downloads": {"$sum": 1},
+        }},
+    ]))
+    counts_by_video = {
+        row["_id"]: row
+        for row in grouped_downloads
+        if row.get("_id")
+    }
+
+    downloads_by_video = []
+    for video in db.videos.find(
+        {},
+        {"_id": 1, "title": 1, "subject": 1, "unit": 1, "archived_at": 1},
+    ):
+        video_id = str(video["_id"])
+        event_row = counts_by_video.pop(video_id, {})
+        downloads_by_video.append({
+            "video_id": video_id,
+            "title": video.get("title") or "Untitled lecture",
+            "subject": video.get("subject") or "",
+            "unit": video.get("unit") or "",
+            "downloads": event_row.get("downloads", 0),
+            "archived": "archived_at" in video,
+        })
+
+    for video_id, event_row in counts_by_video.items():
+        downloads_by_video.append({
+            "video_id": video_id,
+            "title": event_row.get("title") or "Removed video",
+            "subject": "",
+            "unit": "",
+            "downloads": event_row["downloads"],
+            "archived": True,
+        })
+
+    downloads_by_video.sort(
+        key=lambda video: (-video["downloads"], video["title"].casefold())
+    )
+
+    return render_template(
+        "admin_downloads.html",
+        downloads_by_video=downloads_by_video,
+        total_downloads=events.count_documents({"event": "notes_download"}),
     )
 
 

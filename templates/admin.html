@@ -72,6 +72,18 @@
             <span class="admin-nav-icon">▣</span>
             <span class="admin-nav-text">Content Library</span>
           </a>
+          <a href="{{ url_for('admin_trash') }}" class="admin-nav-link">
+            <span class="admin-nav-icon">▤</span>
+            <span class="admin-nav-text">Trash</span>
+          </a>
+          <a href="{{ url_for('admin_analytics') }}" class="admin-nav-link">
+            <span class="admin-nav-icon">▥</span>
+            <span class="admin-nav-text">Analytics</span>
+          </a>
+          <a href="{{ url_for('admin_downloads') }}" class="admin-nav-link">
+            <span class="admin-nav-icon">↓</span>
+            <span class="admin-nav-text">Notes Downloads</span>
+          </a>
 
 
           <div class="admin-nav-title">
@@ -650,6 +662,12 @@
 
                       {% endif %}
 
+                      {% if video.content_issues %}
+                      <span class="admin-status warning" title="{{ video.content_issues|join(', ') }}">
+                        ⚠ {{ video.content_issues|join(' · ') }}
+                      </span>
+                      {% endif %}
+
                     </div>
 
                   </div>
@@ -683,10 +701,10 @@
 
 
                     <form method="post" action="{{ url_for('delete_video', video_id=video._id) }}"
-                      onsubmit="return confirm('Delete this video permanently?');">
+                      onsubmit="return confirm('Move this video to Trash? You can restore it later.');">
                       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-                      <button class="admin-small-button danger" type="submit" title="Delete">
+                      <button class="admin-small-button danger" type="submit" title="Move to Trash">
                         🗑
                       </button>
 

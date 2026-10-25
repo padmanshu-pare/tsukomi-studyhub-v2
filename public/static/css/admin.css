@@ -836,6 +836,11 @@ body {
     color: var(--admin-red);
 }
 
+.admin-status.warning {
+    background: rgba(244, 189, 79, 0.12);
+    color: var(--admin-yellow);
+}
+
 /* =========================================================
    EMPTY STATE
    ========================================================= */

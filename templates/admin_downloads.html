@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes Downloads · TSUKOMI Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <style>
+        .downloads-page {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .downloads-header {
+            margin-bottom: 24px;
+        }
+
+        .downloads-eyebrow {
+            margin-bottom: 8px;
+            color: var(--admin-pink);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+        }
+
+        .downloads-title {
+            margin: 0;
+            color: var(--admin-text);
+            font-size: clamp(30px, 4vw, 44px);
+            line-height: 1;
+        }
+
+        .downloads-subtitle {
+            margin: 10px 0 0;
+            color: var(--admin-muted);
+            font-size: 13px;
+        }
+
+        .downloads-total {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin: 22px 0;
+            padding: 16px 20px;
+            border: 1px solid var(--admin-border);
+            border-radius: 12px;
+            background: var(--admin-surface);
+        }
+
+        .downloads-total-label {
+            color: var(--admin-muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .downloads-total-value {
+            color: var(--admin-pink);
+            font-size: 25px;
+            font-weight: 900;
+        }
+
+        .downloads-note {
+            margin: 0 0 14px;
+            color: var(--admin-muted);
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .downloads-table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--admin-border);
+            border-radius: 14px;
+            background: var(--admin-surface);
+        }
+
+        .downloads-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .downloads-table th,
+        .downloads-table td {
+            padding: 15px 18px;
+            border-bottom: 1px solid var(--admin-border);
+        }
+
+        .downloads-table th {
+            color: var(--admin-muted);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .downloads-table td {
+            color: var(--admin-text);
+            font-size: 12px;
+        }
+
+        .downloads-table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .downloads-video-title {
+            color: var(--admin-text);
+            font-weight: 750;
+        }
+
+        .downloads-video-meta {
+            margin-top: 4px;
+            color: var(--admin-muted);
+            font-size: 10px;
+        }
+
+        .downloads-count {
+            color: var(--admin-pink);
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        .downloads-archived {
+            display: inline-flex;
+            margin-top: 6px;
+            padding: 3px 7px;
+            border-radius: 999px;
+            background: var(--admin-surface-2);
+            color: var(--admin-muted);
+            font-size: 9px;
+            font-weight: 800;
+        }
+
+        .downloads-empty {
+            padding: 40px 18px;
+            color: var(--admin-muted);
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .downloads-table th,
+            .downloads-table td {
+                padding: 12px;
+            }
+
+            .downloads-table th:nth-child(2),
+            .downloads-table td:nth-child(2) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-page">
+        {% include "admin_sidebar.html" %}
+
+        <main class="admin-main">
+            <div class="admin-container downloads-page">
+                <header class="downloads-header">
+                    <div class="downloads-eyebrow">STUDYHUB ANALYTICS</div>
+                    <h1 class="downloads-title">Notes Downloads</h1>
+                    <p class="downloads-subtitle">See how often students open the notes link for each video.</p>
+                </header>
+
+                <div class="downloads-total">
+                    <span class="downloads-total-label">Total notes link opens</span>
+                    <span class="downloads-total-value">{{ total_downloads }}</span>
+                </div>
+
+                <p class="downloads-note">
+                    Counts are recorded when StudyHub redirects a student to the notes link. Actual downloads completed on Google Drive or another provider cannot be confirmed by this site.
+                </p>
+
+                <div class="downloads-table-wrap">
+                    <table class="downloads-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Video</th>
+                                <th scope="col">Subject / Unit</th>
+                                <th scope="col">Notes link opens</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for video in downloads_by_video %}
+                            <tr>
+                                <td>
+                                    <div class="downloads-video-title">{{ video.title }}</div>
+                                    {% if video.archived %}
+                                    <span class="downloads-archived">Archived / removed</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ video.subject or "—" }}
+                                    {% if video.unit %}<div class="downloads-video-meta">Unit {{ video.unit }}</div>{% endif %}
+                                </td>
+                                <td><span class="downloads-count">{{ video.downloads }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td class="downloads-empty" colspan="3">No videos or notes activity found yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>
