@@ -156,6 +156,12 @@
       line-height: 1.6;
     }
 
+    .video-description {
+      display: block;
+      white-space: pre-line;
+      margin-bottom: 12px;
+    }
+
     /* =========================================================
        VIDEO
        ========================================================= */
@@ -590,12 +596,7 @@
 
       <p class="subtitle">
 
-        {{ video.description
-        or
-        "Watch the lecture to unlock your notes."
-        }}
-
-        <br>
+        <span class="video-description">{{ video.description or "Watch the lecture to unlock your notes." }}</span>
 
         After
         <strong>

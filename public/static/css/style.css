@@ -726,6 +726,7 @@ body.study-navigation-loading #lectures {
   color: var(--ts-muted);
   font-size: .78rem;
   line-height: 1.6;
+  white-space: pre-line;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
