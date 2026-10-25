@@ -398,6 +398,23 @@ h3 {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr))
 }
 
+.curriculum-group + .curriculum-group {
+  margin-top: 24px
+}
+
+.curriculum-group h3 {
+  margin: 0 0 12px;
+  color: var(--ts-soft);
+  font-size: .95rem
+}
+
+.subject-code {
+  color: var(--ts-yellow) !important;
+  font-size: .66rem !important;
+  font-weight: 800;
+  letter-spacing: .03em
+}
+
 .subject-card-selector {
   min-height: 92px
 }

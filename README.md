@@ -4,9 +4,13 @@ TSUKOMI StudyHub is an exam-focused learning platform created for **TSUKOMI PADH
 
 ## About the project
 
-The platform gives students a simple way to discover relevant lectures by year, semester, subject, and unit. Each lecture has its own dedicated page with an embedded YouTube video, learning information, and related content. After students complete the required watch duration, they can open the notes attached to that lecture.
+The platform gives students a simple way to discover relevant lectures by year, semester, and subject. Subject videos are listed together in unit order, starting from Unit 1. Each lecture has its own dedicated page with an embedded YouTube video, learning information, and related content. After students complete the required watch duration, they can open the notes attached to that lecture.
 
 The project also has a protected admin workspace, making it possible to manage the full lecture library without changing website code for every new video. An administrator can add a YouTube link, attach notes, choose academic details, publish content, and review engagement analytics.
+
+## Curriculum browser
+
+The study browser starts with year cards, then shows that year's two semesters, followed by grouped subject cards. Semesters 1 and 2 show Group A and Group B separately; later semesters organize subjects into core, elective, lab, and project groups. Selecting a subject shows all its videos together, ordered by unit, instead of requiring a separate unit selection. Selecting a year, semester, or subject updates the browser without a full-page reload, while browser Back/Forward and direct links continue to work. Subjects without published lectures show “Content coming soon.” These are curriculum placeholders only and do not create fake video records or links; published video counts continue to come from MongoDB.
 
 ## How it helps students
 

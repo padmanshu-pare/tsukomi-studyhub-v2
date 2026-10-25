@@ -33,45 +33,80 @@
         {% if selected_subject and selected_unit %}
         {{ selected_subject }} · {{ selected_unit_label }}
         {% elif selected_subject %}
-        {{ selected_subject }} · Units
+        {{ selected_subject }}
         {% elif selected_semester %}
         {{ selected_semester_label }}
+        {% elif selected_academic_year %}
+        {% if selected_academic_year == "Other Semesters" %}{{ selected_academic_year }}{% else %}{{ selected_academic_year }} · Semesters{% endif %}
         {% else %}
-        Browse by semester
+        Browse by year
         {% endif %}
       </h2>
       <p>
         {% if selected_subject and selected_unit %}
         {{ total_videos }} video{% if total_videos != 1 %}s{% endif %} in this unit.
         {% elif selected_subject %}
-        Choose a unit to see its videos.
+        {% if subject_video_count %}{{ subject_video_count }} videos, ordered by unit.{% else %}Videos coming soon for this subject.{% endif %}
         {% elif selected_semester %}
         Choose a subject to continue.
+        {% elif selected_academic_year %}
+        Choose a semester to continue.
         {% else %}
-        Select a semester, then choose a subject and unit.
+        Select a year, then choose a semester and subject.
         {% endif %}
       </p>
     </div>
 
     {% if selected_unit %}
-    <a class="selector-back" href="{{ url_for('home', semester=selected_semester, subject=selected_subject) }}">← Back to units</a>
+    <a class="selector-back" href="{{ url_for('home', academic_year=selected_academic_year, semester=selected_semester, subject=selected_subject) }}">← View all subject videos</a>
     {% elif selected_subject %}
-    <a class="selector-back" href="{{ url_for('home', semester=selected_semester) }}">← Back to subjects</a>
+    <a class="selector-back" href="{{ url_for('home', academic_year=selected_academic_year, semester=selected_semester) }}">← Back to subjects</a>
     {% elif selected_semester %}
-    <a class="selector-back" href="{{ url_for('home') }}">← All semesters</a>
+    <a class="selector-back" href="{{ url_for('home', academic_year=selected_academic_year) }}">← Back to semesters</a>
+    {% elif selected_academic_year %}
+    <a class="selector-back" href="{{ url_for('home') }}">← All years</a>
     {% endif %}
   </div>
 
-  {% if not selected_semester %}
+  {% if not selected_academic_year and not selected_semester %}
+  <div class="selection-grid">
+    {% for academic_year in academic_years %}
+    <a class="selection-card" href="{{ url_for('home', academic_year=academic_year.label) }}">
+      <span class="selection-icon">{% if academic_year.number %}{{ "%02d"|format(academic_year.number) }}{% else %}••{% endif %}</span>
+      <span class="selection-info">
+        <strong>{{ academic_year.label }}</strong>
+        {% if academic_year.number %}
+        <span>Semesters {{ academic_year.number * 2 - 1 }} &amp; {{ academic_year.number * 2 }}</span>
+        {% else %}
+        <span>Explore additional semesters</span>
+        {% endif %}
+      </span>
+      <span class="selection-arrow" aria-hidden="true">→</span>
+    </a>
+    {% endfor %}
+  </div>
+
+  {% elif selected_academic_year and not selected_semester %}
+  {% if selected_academic_year != "Other Semesters" %}
+  {% set academic_year_number = selected_academic_year[:1] | int %}
+  {% endif %}
   <div class="selection-grid">
     {% for semester in semester_catalog %}
-    <a class="selection-card" href="{{ url_for('home', semester=semester.label) }}">
+    {% if selected_academic_year == "Other Semesters" %}
+    {% set belongs_to_year = semester.number not in range(1, 9) %}
+    {% else %}
+    {% set belongs_to_year = semester.number in [academic_year_number * 2 - 1, academic_year_number * 2] %}
+    {% endif %}
+    {% if belongs_to_year %}
+    <a class="selection-card" href="{{ url_for('home', academic_year=selected_academic_year, semester=semester.label) }}">
       <span class="selection-icon">{{ "%02d"|format(semester.number) }}</span>
       <span class="selection-info">
         <strong>{{ semester.label }}</strong>
         <span>
           {% if semester.video_count %}
           {{ semester.video_count }} published video{% if semester.video_count != 1 %}s{% endif %}
+          {% elif semester.subject_count %}
+          {{ semester.subject_count }} subjects · content coming soon
           {% else %}
           Explore semester
           {% endif %}
@@ -79,37 +114,42 @@
       </span>
       <span class="selection-arrow" aria-hidden="true">→</span>
     </a>
+    {% endif %}
     {% endfor %}
-  </div>
-
-  {% elif semester_video_count == 0 %}
-  <div class="empty-state panel" role="status">
-    <div class="empty-icon">⌕</div>
-    <h2>Content Coming Soon</h2>
-    <p>We’re preparing lectures and notes for {{ selected_semester_label }}.</p>
-    <a class="button" href="{{ url_for('home') }}">Browse other semesters</a>
   </div>
 
   {% elif not selected_subject %}
-  {% if semester_subjects %}
-  <div class="selection-grid subject-selection">
-    {% for subject in semester_subjects %}
-    <a class="selection-card" href="{{ url_for('home', semester=selected_semester, subject=subject.name) }}">
-      <span class="selection-icon" aria-hidden="true">📚</span>
-      <span class="selection-info">
-        <strong>{{ subject.name }}</strong>
-        <span>{{ subject.video_count }} video{% if subject.video_count != 1 %}s{% endif %}</span>
-      </span>
-      <span class="selection-arrow" aria-hidden="true">→</span>
-    </a>
-    {% endfor %}
-  </div>
+  {% if semester_subject_groups %}
+  {% for group in semester_subject_groups %}
+  <section class="curriculum-group" aria-label="{{ group.name }}">
+    <h3>{{ group.name }}</h3>
+    <div class="selection-grid subject-selection">
+      {% for subject in group.subjects %}
+      <a class="selection-card" href="{{ url_for('home', academic_year=selected_academic_year, semester=selected_semester, subject=subject.name) }}">
+        <span class="selection-icon subject-icon-selector" aria-hidden="true">📚</span>
+        <span class="selection-info">
+          <strong>{{ subject.name }}</strong>
+          {% if subject.code %}<span class="subject-code">{{ subject.code }}</span>{% endif %}
+          <span>
+            {% if subject.video_count %}
+            {{ subject.video_count }} video{% if subject.video_count != 1 %}s{% endif %}
+            {% else %}
+            Content coming soon
+            {% endif %}
+          </span>
+        </span>
+        <span class="selection-arrow" aria-hidden="true">→</span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
   {% else %}
   <div class="empty-state panel" role="status">
     <div class="empty-icon">⌕</div>
     <h2>Content Coming Soon</h2>
     <p>We’re preparing subjects for {{ selected_semester_label }}.</p>
-    <a class="button" href="{{ url_for('home') }}">Browse other semesters</a>
+    <a class="button" href="{{ url_for('home', academic_year=selected_academic_year) }}">Browse other semesters</a>
   </div>
   {% endif %}
 
@@ -118,50 +158,25 @@
     <div class="empty-icon">⌕</div>
     <h2>Content Coming Soon</h2>
     <p>We’re preparing videos for {{ selected_subject }}.</p>
-    <a class="button" href="{{ url_for('home', semester=selected_semester) }}">← Back to subjects</a>
+    <a class="button" href="{{ url_for('home', academic_year=selected_academic_year, semester=selected_semester) }}">← Back to subjects</a>
   </div>
-
-  {% elif not selected_unit %}
-  {% if subject_units %}
-  <div class="selection-grid subject-selection">
-    {% for unit in subject_units %}
-    <a class="selection-card" href="{{ url_for('home', semester=selected_semester, subject=selected_subject, unit=unit.value or unit.name) }}">
-      <span class="selection-icon" aria-hidden="true">▤</span>
-      <span class="selection-info">
-        <strong>{{ unit.name }}</strong>
-        <span>{{ unit.video_count }} video{% if unit.video_count != 1 %}s{% endif %}</span>
-      </span>
-      <span class="selection-arrow" aria-hidden="true">→</span>
-    </a>
-    {% endfor %}
-  </div>
-  {% else %}
-  <div class="empty-state panel" role="status">
-    <div class="empty-icon">⌕</div>
-    <h2>Content Coming Soon</h2>
-    <p>We’re preparing units for {{ selected_subject }}.</p>
-    <a class="button" href="{{ url_for('home', semester=selected_semester) }}">← Back to subjects</a>
-  </div>
-  {% endif %}
 
   {% elif total_videos == 0 %}
   <div class="empty-state panel" role="status">
     <div class="empty-icon">⌕</div>
-    <h2>Content Coming Soon</h2>
-    <p>We’re preparing videos for {{ selected_subject }} · {{ selected_unit }}.</p>
-    <a class="button" href="{{ url_for('home', semester=selected_semester, subject=selected_subject) }}">← Back to units</a>
+    <h2>No videos found</h2>
+    <p>No videos match this unit in {{ selected_subject }}.</p>
+    <a class="button" href="{{ url_for('home', academic_year=selected_academic_year, semester=selected_semester, subject=selected_subject) }}">View all subject videos</a>
   </div>
   {% endif %}
 </section>
 
-{% if query or (selected_unit and total_videos) %}
+{% if query or (selected_subject and total_videos) %}
 <section class="lecture-results" id="lectures" aria-labelledby="lecture-heading">
   <div class="section-heading">
     <div>
       <p class="eyebrow">LECTURES</p>
-      <h2 id="lecture-heading">
-        {% if query %}Search Results        {% else %}{{ selected_subject }} · {{ selected_unit_label }}{% endif %}
-      </h2>
+      <h2 id="lecture-heading">{% if query %}Search Results{% elif selected_unit %}{{ selected_subject }} · {{ selected_unit_label }}{% else %}{{ selected_subject }} · All Videos{% endif %}</h2>
     </div>
     <span class="result-count">{{ total_videos }} video{% if total_videos != 1 %}s{% endif %}</span>
   </div>
@@ -169,11 +184,11 @@
   {% if total_pages > 1 %}
   <nav class="pagination" aria-label="Lecture pages">
     {% if page > 1 %}
-    <a href="{{ url_for('home', q=query, year=selected_year, semester=selected_semester, subject=selected_subject, unit=selected_unit, page=page - 1) }}#lectures">← Previous</a>
+    <a href="{{ url_for('home', q=query, year=selected_year, academic_year=selected_academic_year, semester=selected_semester, subject=selected_subject, unit=selected_unit, page=page - 1) }}#lectures">← Previous</a>
     {% endif %}
     <span>Page {{ page }} of {{ total_pages }}</span>
     {% if page < total_pages %}
-    <a href="{{ url_for('home', q=query, year=selected_year, semester=selected_semester, subject=selected_subject, unit=selected_unit, page=page + 1) }}#lectures">Next →</a>
+    <a href="{{ url_for('home', q=query, year=selected_year, academic_year=selected_academic_year, semester=selected_semester, subject=selected_subject, unit=selected_unit, page=page + 1) }}#lectures">Next →</a>
     {% endif %}
   </nav>
   {% endif %}
@@ -210,5 +225,7 @@
   </div>
 </section>
 {% endif %}
+
+<script defer src="{{ url_for('static', filename='js/studyhub.js') }}"></script>
 
 {% endblock %}

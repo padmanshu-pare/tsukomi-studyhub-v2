@@ -212,12 +212,132 @@ def _semester_filter(value):
     }
 
 
+def _video_unit_sort_key(video):
+    unit_match = re.search(r"\d+", video.get("unit") or "")
+    return (
+        0 if unit_match else 1,
+        int(unit_match.group()) if unit_match else 0,
+    )
+
+
+CURRICULUM = {
+    1: [
+        ("Group A", [
+            ("BT-101 / BT-201", "Engineering Chemistry"),
+            ("BT-102 / BT-202", "Mathematics-I"),
+            ("BT-103 / BT-203", "English for Communication"),
+            ("BT-104 / BT-204", "Basic Electrical & Electronics Engineering"),
+            ("BT-105 / BT-205", "Engineering Graphics"),
+            ("BT-106 / BT-206", "Manufacturing Practices"),
+        ]),
+        ("Group B", [
+            ("BT-201 / BT-101", "Engineering Physics"),
+            ("BT-202 / BT-102", "Mathematics-II"),
+            ("BT-203 / BT-103", "Basic Mechanical Engineering"),
+            ("BT-204 / BT-104", "Basic Civil Engineering & Mechanics"),
+            ("BT-205 / BT-105", "Basic Computer Engineering"),
+            ("BT-206 / BT-106", "Language Lab & Seminars"),
+        ]),
+    ],
+    2: [
+        ("Group A", [
+            ("BT-101 / BT-201", "Engineering Chemistry"),
+            ("BT-102 / BT-202", "Mathematics-I"),
+            ("BT-103 / BT-203", "English for Communication"),
+            ("BT-104 / BT-204", "Basic Electrical & Electronics Engineering"),
+            ("BT-105 / BT-205", "Engineering Graphics"),
+            ("BT-106 / BT-206", "Manufacturing Practices"),
+        ]),
+        ("Group B", [
+            ("BT-201 / BT-101", "Engineering Physics"),
+            ("BT-202 / BT-102", "Mathematics-II"),
+            ("BT-203 / BT-103", "Basic Mechanical Engineering"),
+            ("BT-204 / BT-104", "Basic Civil Engineering & Mechanics"),
+            ("BT-205 / BT-105", "Basic Computer Engineering"),
+            ("BT-206 / BT-106", "Language Lab & Seminars"),
+        ]),
+    ],
+    3: [
+        ("Core Subjects", [
+            ("ES-301", "Energy & Environmental Engineering"),
+            ("CS-302", "Discrete Structure (Discrete Mathematics)"),
+            ("CS-303", "Data Structure"),
+            ("CS-304", "Digital Systems"),
+            ("CS-305", "Object Oriented Programming & Methodology"),
+        ]),
+        ("Practical", [("CS-306", "Computer Workshop")]),
+    ],
+    4: [
+        ("Core Subjects", [
+            ("BT-401", "Mathematics-III"),
+            ("CS-402", "Analysis & Design of Algorithm (ADA)"),
+            ("CS-403", "Software Engineering"),
+            ("CS-404", "Computer Organization & Architecture (COA)"),
+            ("CS-405", "Operating Systems"),
+            ("BT-408", "Cyber Security"),
+        ]),
+        ("Practical", [("CS-406", "Programming Practices (Lab)")]),
+    ],
+    5: [
+        ("Core Subjects", [
+            ("CS-501", "Theory of Computation (TOC)"),
+            ("CS-502", "Database Management Systems (DBMS)"),
+        ]),
+        ("Electives", [
+            ("CS-503", "Departmental Elective (e.g., Data Analytics, Pattern Recognition, Cyber Security)"),
+            ("CS-504", "Open Elective (e.g., Internet and Web Technology, Introduction to DBMS)"),
+        ]),
+        ("Labs & Project", [
+            ("CS-505", "Linux Lab"),
+            ("CS-506", "Python Lab"),
+            ("CS-508", "Minor Project-I"),
+        ]),
+    ],
+    6: [
+        ("Core Subjects", [
+            ("CS-601", "Machine Learning"),
+            ("CS-602", "Computer Networks"),
+        ]),
+        ("Electives", [
+            ("CS-603", "Departmental Elective (e.g., Advanced Computer Architecture, Compiler Design, Computer Graphics)"),
+            ("CS-604", "Open Elective (e.g., Knowledge Management, Project Management)"),
+        ]),
+        ("Labs & Project", [
+            ("CS-605", "Data Analytics Lab"),
+            ("CS-606", "Skill Development Lab"),
+            ("CS-608", "Minor Project-II"),
+        ]),
+    ],
+    7: [
+        ("Core Subjects", [("CS-701", "Software Architectures")]),
+        ("Electives", [
+            ("CS-702", "Departmental Elective (e.g., Computational Intelligence, Cloud Computing, Big Data)"),
+            ("CS-703", "Open Elective (e.g., Cryptography & Information Security, Data Mining)"),
+        ]),
+        ("Practical & Project", [
+            ("CS-704", "Departmental Elective Lab"),
+            ("CS-706", "Major Project-I"),
+            ("CS-707", "Industrial Training / Internship Evaluation"),
+        ]),
+    ],
+    8: [
+        ("Core Subjects", [("CS-801", "Internet of Things (IoT)")]),
+        ("Electives", [
+            ("CS-802", "Departmental Elective (e.g., Blockchain Technologies, High Performance Computing)"),
+            ("CS-803", "Open Elective / Managing Innovation & Entrepreneurship"),
+        ]),
+        ("Project", [("CS-804", "Major Project-II")]),
+    ],
+}
+
+
 @app.route("/")
 def home():
     require_db()
     query = request.args.get("q", "").strip()
     selected_subject = request.args.get("subject", "").strip()
     selected_year = request.args.get("year", "").strip()
+    selected_academic_year = request.args.get("academic_year", "").strip()
     selected_semester = request.args.get("semester", "").strip()
     selected_unit = request.args.get("unit", "").strip()
     selected_unit_label = (
@@ -279,6 +399,9 @@ def home():
             "label": label,
             "number": semester_number,
             "video_count": db.videos.count_documents(semester_filter),
+            "subject_count": sum(
+                len(subjects) for _, subjects in CURRICULUM.get(semester_number, [])
+            ),
         })
 
     known_semester_numbers = {item["number"] for item in semester_catalog}
@@ -300,70 +423,98 @@ def home():
             }),
         })
     semester_catalog.sort(key=lambda item: (item["number"], item["label"].casefold()))
+    academic_years = [
+        {"label": _semester_label(year).replace("Semester", "Year"), "number": year}
+        for year in range(1, 5)
+    ]
+    if any(semester["number"] not in range(1, 9) for semester in semester_catalog):
+        academic_years.append({"label": "Other Semesters", "number": None})
+    if selected_academic_year not in {year["label"] for year in academic_years}:
+        selected_academic_year = ""
+    for academic_year in academic_years:
+        if academic_year["number"] is None:
+            academic_year["semester_count"] = sum(
+                semester["number"] not in range(1, 9)
+                for semester in semester_catalog
+            )
+            continue
+        first_semester = (academic_year["number"] - 1) * 2 + 1
+        academic_year["semester_count"] = sum(
+            first_semester <= semester["number"] <= first_semester + 1
+            for semester in semester_catalog
+        )
 
-    semester_video_count = (
-        db.videos.count_documents(browse_filters)
-        if selected_semester else 0
-    )
-    semester_subjects = []
-    subject_units = []
+    semester_subject_groups = []
     subject_video_count = 0
     if selected_semester and not selected_subject:
+        catalog_groups = CURRICULUM.get(selected_semester_number, [])
+        catalog_names = {
+            name.casefold()
+            for _, subjects in catalog_groups
+            for _, name in subjects
+        }
+        for group_name, subjects in catalog_groups:
+            group_subjects = []
+            for code, name in subjects:
+                subject_filter = {**browse_filters, "subject": name}
+                group_subjects.append({
+                    "code": code,
+                    "name": name,
+                    "video_count": db.videos.count_documents(subject_filter),
+                })
+            semester_subject_groups.append({
+                "name": group_name,
+                "subjects": group_subjects,
+            })
+
+        extra_subjects = []
         for subject in sorted(
             filter(None, db.videos.distinct("subject", browse_filters)),
             key=str.casefold,
         ):
+            if subject.casefold() in catalog_names:
+                continue
             subject_filter = {**browse_filters, "subject": subject}
-            semester_subjects.append({
+            extra_subjects.append({
                 "name": subject,
                 "video_count": db.videos.count_documents(subject_filter),
+            })
+        if extra_subjects:
+            semester_subject_groups.append({
+                "name": "Other Published Subjects",
+                "subjects": extra_subjects,
             })
     elif selected_semester and selected_subject:
         subject_filter = {**browse_filters, "subject": selected_subject}
         subject_video_count = db.videos.count_documents(subject_filter)
-        for unit in sorted(
-            filter(None, db.videos.distinct("unit", subject_filter)),
-            key=str.casefold,
-        ):
-            unit_filter = {**subject_filter, "unit": unit}
-            subject_units.append({
-                "name": unit,
-                "video_count": db.videos.count_documents(unit_filter),
-            })
-        if db.videos.count_documents({
-            **subject_filter,
-            "$or": [
-                {"unit": ""},
-                {"unit": None},
-                {"unit": {"$exists": False}},
-            ],
-        }):
-            subject_units.append({
-                "name": "Uncategorized",
-                "value": "__uncategorized__",
-                "video_count": db.videos.count_documents({
-                    **subject_filter,
-                    "$or": [
-                        {"unit": ""},
-                        {"unit": None},
-                        {"unit": {"$exists": False}},
-                    ],
-                }),
-            })
     else:
         subject_video_count = 0
 
-    show_videos = bool(query or selected_unit)
-    page_size = 12
-    total_videos = db.videos.count_documents(filters) if show_videos else 0
+    show_videos = bool(query or selected_subject)
+    total_videos = 0
+    matching_videos = []
+    if show_videos:
+        if selected_subject:
+            matching_videos = list(db.videos.find(filters).sort("created_at", -1))
+            matching_videos.sort(key=_video_unit_sort_key)
+            total_videos = len(matching_videos)
+        else:
+            total_videos = db.videos.count_documents(filters)
+    page_size = max(12, total_videos) if selected_subject else 12
     total_pages = max(1, (total_videos + page_size - 1) // page_size)
     page = min(page, total_pages)
-    videos = list(
-        db.videos.find(filters)
-        .sort("created_at", -1)
-        .skip((page - 1) * page_size)
-        .limit(page_size)
-    ) if show_videos else []
+    if selected_subject:
+        start = (page - 1) * page_size
+        videos = matching_videos[start:start + page_size]
+    elif query:
+        videos = list(
+            db.videos.find(filters)
+            .sort("created_at", -1)
+            .skip((page - 1) * page_size)
+            .limit(page_size)
+        )
+    else:
+        videos = []
     all_published = {"published": True}
     options = {
         "subjects": sorted(filter(None, db.videos.distinct("subject", all_published))),
@@ -377,14 +528,14 @@ def home():
         query=query,
         selected_subject=selected_subject,
         selected_year=selected_year,
+        selected_academic_year=selected_academic_year,
         selected_semester=selected_semester,
         selected_unit=selected_unit,
         selected_unit_label=selected_unit_label,
         selected_semester_label=selected_semester_label,
         semester_catalog=semester_catalog,
-        semester_video_count=semester_video_count,
-        semester_subjects=semester_subjects,
-        subject_units=subject_units,
+        academic_years=academic_years,
+        semester_subject_groups=semester_subject_groups,
         subject_video_count=subject_video_count,
         show_videos=show_videos,
         page=page,
