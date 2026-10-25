@@ -58,7 +58,7 @@ The Flask app runs on Vercel as a Python function. Before deploying:
 5. Optionally set `DB_NAME` (defaults to `tsukomi_studyhub`), `REQUIRED_WATCH_SECONDS` (defaults to `40`), and `SESSION_COOKIE_SECURE` (defaults to enabled on Vercel).
 6. Redeploy after adding or changing Vercel environment variables. Open `/admin` to reach the protected admin login.
 
-Do not commit `.env` or put production secrets in the repository. On the first successful connection, the app creates its MongoDB indexes and imports the bundled initial video records if the videos collection is empty.
+Do not commit `.env` or put production secrets in the repository. On successful MongoDB connections, the app ensures its indexes, imports the bundled initial video records if the videos collection is empty, and applies idempotent metadata migrations such as simplified video titles.
 
 ## License
 

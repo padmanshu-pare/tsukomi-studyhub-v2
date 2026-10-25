@@ -3,6 +3,35 @@ One-time Migration & Indexing for MongoDB.
 All video details are stored and managed directly in MongoDB.
 """
 
+from datetime import datetime, timezone
+
+from pymongo import UpdateOne
+
+
+SIMPLIFIED_VIDEO_TITLES = {
+    "4NzqT_at4fc": "Operating Systems - Important Questions",
+    "7zEvvM4Dueg": "Operating Systems - Complete Revision",
+    "NCD68uZZCsQ": "Operating Systems - Unit 5",
+    "pnK5UyAdG1k": "Operating Systems - Unit 4",
+    "hxOA_u8y_0U": "Operating Systems - Unit 3",
+    "sYm12jNPCao": "Operating Systems - Unit 2",
+    "Kq0zz8fHXRc": "Operating Systems - Unit 1",
+    "CMLyUh1xPdY": "COA - Important Questions",
+    "h9aHz0PUzTg": "COA - Complete Revision",
+    "izqkUj0JLd0": "COA - Unit 5",
+    "kzvrNNqepAk": "COA - Unit 4",
+    "vp8geYIKmlw": "COA - Unit 3",
+    "2t4AQs7SjAY": "COA - Unit 2",
+    "cnEnXjeZO8U": "COA - Unit 1",
+    "UxTklWTfNEI": "Software Engineering - Complete Revision",
+    "2LA3s5j_SX0": "Software Engineering - Unit 5",
+    "3c0xCe-wt84": "Software Engineering - Unit 4",
+    "tXYbYiw8NVM": "Software Engineering - Unit 3",
+    "QugOsveKh5A": "Software Engineering - Unit 2",
+    "wG7sfHLWtjI": "Software Engineering - Unit 1",
+    "v8pxSieXMlM": "DBMS - Unit 1",
+}
+
 MIGRATED_VIDEOS = [{'created_at': '2026-10-18T11:16:53.221543+00:00',
   'description': '🚨 Operating System Exam Near? This is your Last Moment Revision!\n'
                  '\n'
@@ -1496,3 +1525,18 @@ def ensure_mongodb_initialized(db):
         for item in MIGRATED_VIDEOS:
             db.videos.insert_one(item.copy())
         print(f"[Database] Successfully migrated {len(MIGRATED_VIDEOS)} videos to MongoDB.")
+    title_updates = [
+        UpdateOne(
+            {"youtube_id": youtube_id, "title": {"$ne": title}},
+            {
+                "$set": {
+                    "title": title,
+                    "updated_at": datetime.now(timezone.utc),
+                }
+            },
+        )
+        for youtube_id, title in SIMPLIFIED_VIDEO_TITLES.items()
+    ]
+    result = db.videos.bulk_write(title_updates, ordered=False)
+    if result.modified_count:
+        print(f"[Database] Simplified titles for {result.modified_count} videos.")
