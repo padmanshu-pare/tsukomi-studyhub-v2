@@ -565,14 +565,17 @@
 
                     {% if video.published %}
                     <a class="admin-small-button" href="{{ url_for('watch', slug=video.slug) }}" target="_blank"
-                      rel="noopener noreferrer">
-                      <span aria-hidden="true">↗</span> Preview
+                      rel="noopener noreferrer" aria-label="Preview video" title="Preview video">
+                      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+                      <span>Preview</span>
                     </a>
                     {% endif %}
 
 
-                    <a class="admin-small-button" href="{{ url_for('edit_video', video_id=video._id) }}">
-                      <span aria-hidden="true">✎</span> Edit
+                    <a class="admin-small-button" href="{{ url_for('edit_video', video_id=video._id) }}"
+                      aria-label="Edit video" title="Edit video">
+                      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m4 16.5-.8 4.3 4.3-.8L19.8 7.7a2.1 2.1 0 0 0-3-3L4 16.5Z"/><path d="m14.8 6.7 3 3"/></svg>
+                      <span>Edit</span>
                     </a>
 
 
@@ -581,11 +584,15 @@
                       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
                       <button class="admin-small-button {% if video.published %}status-action{% else %}publish-action{% endif %}"
-                        type="submit">
+                        type="submit"
+                        aria-label="{% if video.published %}Unpublish{% else %}Publish{% endif %} video"
+                        title="{% if video.published %}Unpublish video{% else %}Publish video{% endif %}">
                         {% if video.published %}
-                        <span aria-hidden="true">◉</span> Unpublish
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 7v5l3 2"/><path d="M16 3h5v5"/></svg>
+                        <span>Unpublish</span>
                         {% else %}
-                        <span aria-hidden="true">●</span> Publish
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/></svg>
+                        <span>Publish</span>
                         {% endif %}
                       </button>
 
@@ -597,8 +604,10 @@
                       onsubmit="return confirm('Move this video to Trash? You can restore it later.');">
                       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-                      <button class="admin-small-button danger" type="submit">
-                        <span aria-hidden="true">⌫</span> Trash
+                      <button class="admin-small-button danger" type="submit"
+                        aria-label="Move video to Trash" title="Move video to Trash">
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg>
+                        <span>Trash</span>
                       </button>
 
                     </form>
