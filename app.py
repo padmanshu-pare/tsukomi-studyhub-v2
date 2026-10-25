@@ -998,6 +998,57 @@ def admin_content():
     )
 
 
+@app.route("/admin/videos/bulk-edit", methods=["POST"])
+@admin_required
+def bulk_edit_videos():
+    require_db()
+
+    video_ids = request.form.getlist("video_ids")
+    if not video_ids or len(video_ids) != len(set(video_ids)):
+        flash("Select one or more videos to edit.", "error")
+        return redirect(url_for("admin_content"))
+
+    if any(not ObjectId.is_valid(video_id) for video_id in video_ids):
+        flash("The selected videos could not be identified. Please try again.", "error")
+        return redirect(url_for("admin_content"))
+
+    updates = []
+    for video_id in video_ids:
+        title_key = f"title_{video_id}"
+        description_key = f"description_{video_id}"
+        if title_key not in request.form or description_key not in request.form:
+            flash("The bulk edit form was incomplete. No videos were changed.", "error")
+            return redirect(url_for("admin_content"))
+
+        title = request.form.get(title_key, "").strip()
+        description = request.form.get(description_key, "").strip()
+        if not title:
+            flash("Every selected video must have a title. No videos were changed.", "error")
+            return redirect(url_for("admin_content"))
+
+        updates.append((ObjectId(video_id), title, description))
+
+    object_ids = [video_id for video_id, _, _ in updates]
+    existing_count = db.videos.count_documents({"_id": {"$in": object_ids}})
+    if existing_count != len(updates):
+        flash("One or more selected videos no longer exist. No videos were changed.", "error")
+        return redirect(url_for("admin_content"))
+
+    updated_at = now()
+    for video_id, title, description in updates:
+        db.videos.update_one(
+            {"_id": video_id},
+            {"$set": {
+                "title": title,
+                "description": description,
+                "updated_at": updated_at,
+            }},
+        )
+
+    flash(f"Updated titles and descriptions for {len(updates)} videos.", "success")
+    return redirect(url_for("admin_content"))
+
+
 @app.route("/admin/videos/new", methods=["POST"])
 @admin_required
 def create_video():

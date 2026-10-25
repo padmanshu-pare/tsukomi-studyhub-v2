@@ -311,7 +311,7 @@
             display: grid;
 
             grid-template-columns:
-                110px minmax(250px, 1.7fr) minmax(170px, 1fr) 90px 110px 150px;
+                28px 110px minmax(250px, 1.7fr) minmax(170px, 1fr) 90px 110px 150px;
 
             gap: 15px;
 
@@ -339,7 +339,7 @@
             display: grid;
 
             grid-template-columns:
-                110px minmax(250px, 1.7fr) minmax(170px, 1fr) 90px 110px 150px;
+                28px 110px minmax(250px, 1.7fr) minmax(170px, 1fr) 90px 110px 150px;
 
             gap: 15px;
 
@@ -361,6 +361,163 @@
 
         .library-row:hover {
             background: rgba(197, 60, 112, 0.035);
+        }
+
+        .library-select-video,
+        .library-select-visible {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--admin-pink);
+            cursor: pointer;
+        }
+
+        .library-bulk-toolbar,
+        .library-bulk-panel {
+            border: 1px solid var(--admin-border);
+            border-radius: 12px;
+            background: #fffafd;
+        }
+
+        .library-bulk-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 12px;
+            padding: 12px 16px;
+        }
+
+        .library-bulk-selection,
+        .library-bulk-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .library-bulk-selection {
+            color: var(--admin-muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .library-bulk-count {
+            color: var(--admin-text);
+        }
+
+        .library-bulk-button {
+            min-height: 36px;
+            padding: 0 13px;
+            border: 1px solid var(--admin-border);
+            border-radius: 8px;
+            background: #fff;
+            color: var(--admin-text);
+            font: inherit;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .library-bulk-button.primary {
+            border-color: var(--admin-pink);
+            background: var(--admin-pink);
+            color: #fff;
+        }
+
+        .library-bulk-button:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .library-bulk-panel {
+            margin-bottom: 16px;
+            padding: 20px;
+        }
+
+        .library-bulk-panel[hidden] {
+            display: none;
+        }
+
+        .library-bulk-heading {
+            margin: 0;
+            color: var(--admin-text);
+            font-size: 17px;
+        }
+
+        .library-bulk-help {
+            margin: 6px 0 16px;
+            color: var(--admin-muted);
+            font-size: 12px;
+        }
+
+        .library-bulk-items {
+            display: grid;
+            gap: 12px;
+            max-height: 520px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .library-bulk-item {
+            display: grid;
+            grid-template-columns: minmax(180px, .8fr) minmax(260px, 1.5fr);
+            gap: 14px;
+            padding: 14px;
+            border: 1px solid var(--admin-border);
+            border-radius: 9px;
+            background: #fff;
+        }
+
+        .library-bulk-item h3 {
+            grid-column: 1 / -1;
+            margin: 0;
+            color: var(--admin-text);
+            font-size: 12px;
+        }
+
+        .library-bulk-item-fields {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: minmax(180px, .8fr) minmax(260px, 1.5fr);
+            gap: 14px;
+        }
+
+        .library-bulk-field label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--admin-muted);
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .library-bulk-field input,
+        .library-bulk-field textarea {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid var(--admin-border);
+            border-radius: 7px;
+            padding: 9px 10px;
+            background: #fffafd;
+            color: var(--admin-text);
+            font: inherit;
+            font-size: 12px;
+        }
+
+        .library-bulk-field textarea {
+            min-height: 86px;
+            resize: vertical;
+        }
+
+        .library-bulk-field input:focus,
+        .library-bulk-field textarea:focus {
+            border-color: var(--admin-pink);
+            outline: 2px solid rgba(197, 60, 112, .12);
+        }
+
+        .library-bulk-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 9px;
+            margin-top: 15px;
         }
 
 
@@ -687,7 +844,7 @@
 
             .library-row {
                 grid-template-columns:
-                    100px minmax(0, 1fr) auto;
+                    22px 100px minmax(0, 1fr) auto;
 
                 gap: 14px;
             }
@@ -699,7 +856,7 @@
             }
 
             .library-actions {
-                grid-column: 3;
+                grid-column: 4;
                 grid-row: 1;
             }
         }
@@ -723,7 +880,7 @@
 
             .library-row {
                 grid-template-columns:
-                    85px minmax(0, 1fr);
+                    22px 85px minmax(0, 1fr);
 
                 gap: 11px;
             }
@@ -734,7 +891,32 @@
             }
 
             .library-actions {
-                grid-column: 2;
+                grid-column: 3;
+            }
+
+            .library-bulk-toolbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .library-bulk-actions {
+                width: 100%;
+            }
+
+            .library-bulk-actions .library-bulk-button {
+                flex: 1;
+            }
+
+            .library-bulk-item {
+                grid-template-columns: 1fr;
+            }
+
+            .library-bulk-item-fields {
+                grid-template-columns: 1fr;
+            }
+
+            .library-bulk-item h3 {
+                grid-column: 1;
             }
 
             .library-footer {
@@ -927,6 +1109,16 @@
 
                 </header>
 
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="admin-flash{% if category == 'error' %} error{% endif %}" role="status">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
 
                 <!-- =================================================
                  STATS
@@ -1084,6 +1276,40 @@
 
                 </div>
 
+                <div class="library-bulk-toolbar">
+                    <label class="library-bulk-selection">
+                        <input id="library-select-visible" class="library-select-visible" type="checkbox">
+                        Select visible videos
+                        <span id="library-bulk-count" class="library-bulk-count">0 selected</span>
+                    </label>
+                    <div class="library-bulk-actions">
+                        <button id="library-clear-selection" class="library-bulk-button" type="button" disabled>
+                            Clear selection
+                        </button>
+                        <button id="library-open-bulk-edit" class="library-bulk-button primary" type="button" disabled>
+                            Edit titles &amp; descriptions
+                        </button>
+                    </div>
+                </div>
+
+                <form id="library-bulk-form" class="library-bulk-panel" method="post"
+                    action="{{ url_for('bulk_edit_videos') }}" hidden>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <h2 class="library-bulk-heading">Edit selected videos</h2>
+                    <p class="library-bulk-help">
+                        Update each title and description below. All other video details will stay unchanged.
+                    </p>
+                    <div id="library-bulk-items" class="library-bulk-items"></div>
+                    <div class="library-bulk-footer">
+                        <button id="library-cancel-bulk-edit" class="library-bulk-button" type="button">
+                            Cancel
+                        </button>
+                        <button class="library-bulk-button primary" type="submit">
+                            Save selected videos
+                        </button>
+                    </div>
+                </form>
+
 
                 <!-- =================================================
                  CONTENT TABLE
@@ -1095,6 +1321,10 @@
                     <!-- TABLE HEADER -->
 
                     <div class="library-table-head">
+
+                        <div>
+                            SELECT
+                        </div>
 
                         <div>
                             VIDEO
@@ -1148,7 +1378,9 @@
 
                         <article class="library-row" data-status="{{ video_status }}" data-year="{{ video.year or '' }}"
                             data-semester="{{ video.semester or '' }}" data-subject="{{ video.subject or '' }}"
-                            data-unit="{{ video.unit or '' }}" data-search="
+                            data-unit="{{ video.unit or '' }}" data-video-id="{{ video._id }}"
+                            data-title="{{ video.title or '' }}" data-description="{{ video.description or '' }}"
+                            data-search="
                             {{
                                 (
                                     (video.title or '') ~ ' ' ~
@@ -1158,6 +1390,10 @@
                             }}
                         ">
 
+                            <div>
+                                <input class="library-select-video" type="checkbox"
+                                    aria-label="Select {{ video.title or 'video' }}">
+                            </div>
 
                             <!-- THUMBNAIL -->
 
@@ -1390,6 +1626,13 @@
 
             const result = document.getElementById("library-result");
             const empty = document.getElementById("library-empty");
+            const selectVisible = document.getElementById("library-select-visible");
+            const bulkCount = document.getElementById("library-bulk-count");
+            const clearSelection = document.getElementById("library-clear-selection");
+            const openBulkEdit = document.getElementById("library-open-bulk-edit");
+            const bulkForm = document.getElementById("library-bulk-form");
+            const bulkItems = document.getElementById("library-bulk-items");
+            const cancelBulkEdit = document.getElementById("library-cancel-bulk-edit");
 
             const rows = Array.from(
                 document.querySelectorAll(".library-row")
@@ -1398,6 +1641,76 @@
             const tabs = document.querySelectorAll(".library-tab");
 
             let activeStatus = "all";
+
+            function selectedRows() {
+                return rows.filter(function (row) {
+                    return row.querySelector(".library-select-video").checked;
+                });
+            }
+
+            function updateBulkSelection() {
+                const selected = selectedRows().length;
+                const visibleRows = rows.filter(function (row) {
+                    return row.style.display !== "none";
+                });
+                const selectedVisible = visibleRows.filter(function (row) {
+                    return row.querySelector(".library-select-video").checked;
+                }).length;
+
+                bulkCount.textContent = `${selected} selected`;
+                clearSelection.disabled = selected === 0;
+                openBulkEdit.disabled = selected === 0;
+                selectVisible.checked = visibleRows.length > 0 && selectedVisible === visibleRows.length;
+                selectVisible.indeterminate = selectedVisible > 0 && selectedVisible < visibleRows.length;
+            }
+
+            function addBulkField(container, labelText, control) {
+                const field = document.createElement("div");
+                const label = document.createElement("label");
+                const id = `bulk-field-${Math.random().toString(36).slice(2)}`;
+
+                field.className = "library-bulk-field";
+                label.htmlFor = id;
+                label.textContent = labelText;
+                control.id = id;
+                field.append(label, control);
+                container.appendChild(field);
+            }
+
+            function renderBulkEditor() {
+                bulkItems.replaceChildren();
+
+                selectedRows().forEach(function (row) {
+                    const videoId = row.dataset.videoId;
+                    const item = document.createElement("section");
+                    const heading = document.createElement("h3");
+                    const videoIdInput = document.createElement("input");
+                    const titleInput = document.createElement("input");
+                    const descriptionInput = document.createElement("textarea");
+                    const fields = document.createElement("div");
+
+                    item.className = "library-bulk-item";
+                    heading.textContent = row.dataset.title || "Untitled video";
+
+                    videoIdInput.type = "hidden";
+                    videoIdInput.name = "video_ids";
+                    videoIdInput.value = videoId;
+
+                    titleInput.type = "text";
+                    titleInput.name = `title_${videoId}`;
+                    titleInput.value = row.dataset.title || "";
+                    titleInput.required = true;
+
+                    descriptionInput.name = `description_${videoId}`;
+                    descriptionInput.value = row.dataset.description || "";
+
+                    fields.className = "library-bulk-item-fields";
+                    addBulkField(fields, "TITLE", titleInput);
+                    addBulkField(fields, "DESCRIPTION", descriptionInput);
+                    item.append(videoIdInput, heading, fields);
+                    bulkItems.appendChild(item);
+                });
+            }
 
 
             /* =========================================================
@@ -1898,6 +2211,8 @@
                     row.style.display =
                         show ? "grid" : "none";
 
+                    const checkbox = row.querySelector(".library-select-video");
+                    checkbox.disabled = !show;
 
                     if (show) {
                         visible++;
@@ -1922,6 +2237,8 @@
                         `Showing ${visible} of ${rows.length} videos`;
 
                 }
+
+                updateBulkSelection();
 
             }
 
@@ -2024,6 +2341,49 @@
                 "change",
                 applyFilters
             );
+
+            selectVisible.addEventListener("change", function () {
+                rows.forEach(function (row) {
+                    if (row.style.display !== "none") {
+                        row.querySelector(".library-select-video").checked = selectVisible.checked;
+                    }
+                });
+                bulkForm.hidden = true;
+                updateBulkSelection();
+            });
+
+            rows.forEach(function (row) {
+                row.querySelector(".library-select-video").addEventListener("change", function () {
+                    bulkForm.hidden = true;
+                    updateBulkSelection();
+                });
+            });
+
+            clearSelection.addEventListener("click", function () {
+                rows.forEach(function (row) {
+                    const checkbox = row.querySelector(".library-select-video");
+                    checkbox.checked = false;
+                    checkbox.disabled = false;
+                });
+                bulkForm.hidden = true;
+                updateBulkSelection();
+            });
+
+            openBulkEdit.addEventListener("click", function () {
+                renderBulkEditor();
+                bulkForm.hidden = false;
+                bulkForm.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+
+            cancelBulkEdit.addEventListener("click", function () {
+                bulkForm.hidden = true;
+            });
+
+            bulkForm.addEventListener("submit", function (event) {
+                if (!window.confirm(`Save title and description changes for ${selectedRows().length} videos?`)) {
+                    event.preventDefault();
+                }
+            });
 
 
             /* =========================================================
