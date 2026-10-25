@@ -588,21 +588,35 @@ def home():
         selected_unit,
     )):
         recent_videos = list(
-            db.videos.find(
-                {"published": True},
+            db.videos.aggregate([
                 {
-                    "title": 1,
-                    "slug": 1,
-                    "youtube_id": 1,
-                    "semester": 1,
-                    "subject": 1,
-                    "unit": 1,
-                    "year": 1,
-                    "description": 1,
+                    "$match": {
+                        "published": True,
+                        "subject": {"$nin": ["", None]},
+                    }
                 },
-            )
-            .sort([("created_at", -1), ("_id", -1)])
-            .limit(8)
+                {"$sort": {"created_at": -1, "_id": -1}},
+                {
+                    "$group": {
+                        "_id": "$subject",
+                        "video": {"$first": "$$ROOT"},
+                    }
+                },
+                {"$replaceRoot": {"newRoot": "$video"}},
+                {"$sort": {"created_at": -1, "_id": -1}},
+                {
+                    "$project": {
+                        "title": 1,
+                        "slug": 1,
+                        "youtube_id": 1,
+                        "semester": 1,
+                        "subject": 1,
+                        "unit": 1,
+                        "year": 1,
+                        "description": 1,
+                    }
+                },
+            ])
         )
     return render_template(
         "index.html",

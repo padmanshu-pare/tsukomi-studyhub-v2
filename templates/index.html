@@ -241,10 +241,10 @@
 <section class="recent-lectures" aria-labelledby="recent-lecture-heading">
   <div class="section-heading">
     <div>
-      <p class="eyebrow">FRESH FROM THE LIBRARY</p>
-      <h2 id="recent-lecture-heading">Recently added</h2>
+      <p class="eyebrow">ONE VIDEO PER SUBJECT</p>
+      <h2 id="recent-lecture-heading">Explore every subject</h2>
     </div>
-    <span class="result-count">Latest {{ recent_videos|length }} videos</span>
+    <span class="result-count">{{ recent_videos|length }} subjects</span>
   </div>
   <div class="grid video-grid">
     {% for video in recent_videos %}
