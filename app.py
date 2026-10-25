@@ -236,6 +236,21 @@ CURRICULUM_SUBJECT_ALIASES = {
         "Computer Organization & Architecture",
         "Computer Organization & Architecture (COA)",
     ),
+    "DBMS": (
+        "DBMS",
+        "Database Management Systems",
+        "Database Management Systems (DBMS)",
+    ),
+    "TOC": (
+        "TOC",
+        "Theory of Computation",
+        "Theory of Computation (TOC)",
+    ),
+    "Cyber Security": ("Cyber Security",),
+    "IWT": (
+        "IWT",
+        "Internet and Web Technology",
+    ),
 }
 
 
@@ -296,18 +311,11 @@ CURRICULUM = {
         ]),
     ],
     5: [
-        ("Core Subjects", [
-            ("CS-501", "Theory of Computation (TOC)"),
-            ("CS-502", "Database Management Systems (DBMS)"),
-        ]),
-        ("Electives", [
-            ("CS-503", "Departmental Elective (e.g., Data Analytics, Pattern Recognition, Cyber Security)"),
-            ("CS-504", "Open Elective (e.g., Internet and Web Technology, Introduction to DBMS)"),
-        ]),
-        ("Labs & Project", [
-            ("CS-505", "Linux Lab"),
-            ("CS-506", "Python Lab"),
-            ("CS-508", "Minor Project-I"),
+        ("Subjects", [
+            ("CS-502", "DBMS"),
+            ("CS-501", "TOC"),
+            ("CS-503", "Cyber Security"),
+            ("CS-504", "IWT"),
         ]),
     ],
     6: [
