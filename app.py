@@ -212,12 +212,31 @@ def _semester_filter(value):
     }
 
 
+def _stored_semester_matches(stored_value, semester_label):
+    semester_query = _semester_filter(semester_label)["semester"]
+    if isinstance(semester_query, dict):
+        return re.fullmatch(
+            semester_query["$regex"],
+            str(stored_value),
+            re.IGNORECASE,
+        ) is not None
+    return stored_value == semester_query
+
+
 def _video_unit_sort_key(video):
     unit_match = re.search(r"\d+", video.get("unit") or "")
     return (
         0 if unit_match else 1,
         int(unit_match.group()) if unit_match else 0,
     )
+
+
+CURRICULUM_SUBJECT_ALIASES = {
+    "Computer Organization & Architecture (COA)": (
+        "Computer Organization & Architecture",
+        "Computer Organization & Architecture (COA)",
+    ),
+}
 
 
 CURRICULUM = {
@@ -274,9 +293,7 @@ CURRICULUM = {
             ("CS-403", "Software Engineering"),
             ("CS-404", "Computer Organization & Architecture (COA)"),
             ("CS-405", "Operating Systems"),
-            ("BT-408", "Cyber Security"),
         ]),
-        ("Practical", [("CS-406", "Programming Practices (Lab)")]),
     ],
     5: [
         ("Core Subjects", [
@@ -365,7 +382,12 @@ def home():
     if selected_semester:
         filters.update(_semester_filter(selected_semester))
     if selected_subject:
-        filters["subject"] = selected_subject
+        filters["subject"] = {
+            "$in": CURRICULUM_SUBJECT_ALIASES.get(
+                selected_subject,
+                (selected_subject,),
+            )
+        }
     if selected_unit:
         if selected_unit == "__uncategorized__":
             filters["$and"] = [{
@@ -391,24 +413,55 @@ def home():
     if selected_semester:
         browse_filters.update(_semester_filter(selected_semester))
 
+    catalog_rows = []
+    if not selected_subject and (not query or selected_semester):
+        catalog_pipeline = [{"$match": browse_filters}]
+        catalog_pipeline.append({
+            "$group": {
+                "_id": {
+                    "semester": "$semester",
+                    "subject": "$subject",
+                },
+                "video_count": {"$sum": 1},
+            }
+        })
+        catalog_rows = list(db.videos.aggregate(catalog_pipeline))
+
+    semester_video_counts = {number: 0 for number in range(1, 9)}
+    subject_video_counts = {number: {} for number in range(1, 9)}
+    stored_semester_counts = {}
+    for row in catalog_rows:
+        stored_semester = row["_id"].get("semester")
+        subject = row["_id"].get("subject")
+        video_count = row["video_count"]
+        if stored_semester:
+            stored_semester_counts[stored_semester] = (
+                stored_semester_counts.get(stored_semester, 0) + video_count
+            )
+            for semester_number in semester_video_counts:
+                if _stored_semester_matches(
+                    stored_semester,
+                    _semester_label(semester_number),
+                ):
+                    semester_video_counts[semester_number] += video_count
+                    if subject:
+                        counts = subject_video_counts[semester_number]
+                        counts[subject] = counts.get(subject, 0) + video_count
+
     semester_catalog = []
     for semester_number in range(1, 9):
         label = _semester_label(semester_number)
-        semester_filter = {"published": True, **_semester_filter(label)}
         semester_catalog.append({
             "label": label,
             "number": semester_number,
-            "video_count": db.videos.count_documents(semester_filter),
+            "video_count": semester_video_counts[semester_number],
             "subject_count": sum(
                 len(subjects) for _, subjects in CURRICULUM.get(semester_number, [])
             ),
         })
 
     known_semester_numbers = {item["number"] for item in semester_catalog}
-    for stored_semester in db.videos.distinct(
-        "semester",
-        {"published": True},
-    ):
+    for stored_semester, video_count in stored_semester_counts.items():
         if not stored_semester:
             continue
         number_match = re.search(r"\d+", str(stored_semester))
@@ -417,10 +470,7 @@ def home():
         semester_catalog.append({
             "label": str(stored_semester),
             "number": int(number_match.group()) if number_match else 99,
-            "video_count": db.videos.count_documents({
-                "published": True,
-                "semester": stored_semester,
-            }),
+            "video_count": video_count,
         })
     semester_catalog.sort(key=lambda item: (item["number"], item["label"].casefold()))
     academic_years = [
@@ -449,18 +499,23 @@ def home():
     if selected_semester and not selected_subject:
         catalog_groups = CURRICULUM.get(selected_semester_number, [])
         catalog_names = {
-            name.casefold()
+            alias.casefold()
             for _, subjects in catalog_groups
             for _, name in subjects
+            for alias in CURRICULUM_SUBJECT_ALIASES.get(name, (name,))
         }
         for group_name, subjects in catalog_groups:
             group_subjects = []
             for code, name in subjects:
-                subject_filter = {**browse_filters, "subject": name}
+                aliases = CURRICULUM_SUBJECT_ALIASES.get(name, (name,))
+                video_count = sum(
+                    subject_video_counts.get(selected_semester_number, {}).get(alias, 0)
+                    for alias in aliases
+                )
                 group_subjects.append({
                     "code": code,
                     "name": name,
-                    "video_count": db.videos.count_documents(subject_filter),
+                    "video_count": video_count,
                 })
             semester_subject_groups.append({
                 "name": group_name,
@@ -468,16 +523,16 @@ def home():
             })
 
         extra_subjects = []
-        for subject in sorted(
-            filter(None, db.videos.distinct("subject", browse_filters)),
-            key=str.casefold,
-        ):
+        semester_subject_counts = subject_video_counts.get(
+            selected_semester_number,
+            {},
+        )
+        for subject in sorted(semester_subject_counts, key=str.casefold):
             if subject.casefold() in catalog_names:
                 continue
-            subject_filter = {**browse_filters, "subject": subject}
             extra_subjects.append({
                 "name": subject,
-                "video_count": db.videos.count_documents(subject_filter),
+                "video_count": semester_subject_counts[subject],
             })
         if extra_subjects:
             semester_subject_groups.append({
@@ -485,8 +540,7 @@ def home():
                 "subjects": extra_subjects,
             })
     elif selected_semester and selected_subject:
-        subject_filter = {**browse_filters, "subject": selected_subject}
-        subject_video_count = db.videos.count_documents(subject_filter)
+        subject_video_count = 0
     else:
         subject_video_count = 0
 
@@ -498,6 +552,7 @@ def home():
             matching_videos = list(db.videos.find(filters).sort("created_at", -1))
             matching_videos.sort(key=_video_unit_sort_key)
             total_videos = len(matching_videos)
+            subject_video_count = total_videos
         else:
             total_videos = db.videos.count_documents(filters)
     page_size = max(12, total_videos) if selected_subject else 12
@@ -515,13 +570,6 @@ def home():
         )
     else:
         videos = []
-    all_published = {"published": True}
-    options = {
-        "subjects": sorted(filter(None, db.videos.distinct("subject", all_published))),
-        "years": sorted(filter(None, db.videos.distinct("year", all_published))),
-        "semesters": sorted(filter(None, db.videos.distinct("semester", all_published))),
-        "units": sorted(filter(None, db.videos.distinct("unit", all_published))),
-    }
     return render_template(
         "index.html",
         videos=videos,
@@ -541,7 +589,6 @@ def home():
         page=page,
         total_pages=total_pages,
         total_videos=total_videos,
-        **options,
     )
 
 

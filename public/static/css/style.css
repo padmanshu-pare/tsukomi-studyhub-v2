@@ -326,6 +326,98 @@ h3 {
   display: none
 }
 
+body.study-navigation-loading #study-selector,
+body.study-navigation-loading #lectures {
+  opacity: .48;
+  pointer-events: none;
+  transition: opacity .16s ease
+}
+
+.study-navigation-progress {
+  position: fixed;
+  z-index: 1000;
+  inset: 0 0 auto;
+  height: 3px;
+  overflow: hidden;
+  background: rgba(255, 210, 28, .12);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease
+}
+
+.study-navigation-progress.active {
+  opacity: 1
+}
+
+.study-navigation-progress span {
+  display: block;
+  width: 32%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--ts-purple), var(--ts-yellow));
+  box-shadow: 0 0 14px rgba(255, 210, 28, .55);
+  transform: translateX(-110%)
+}
+
+.study-navigation-progress.active span {
+  animation: studyProgress 1.15s ease-in-out infinite
+}
+
+.study-navigation-status {
+  position: fixed;
+  z-index: 999;
+  top: 90px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  max-width: calc(100vw - 32px);
+  padding: 12px 17px;
+  border: 1px solid rgba(255, 210, 28, .25);
+  border-radius: 999px;
+  color: var(--ts-white);
+  background: rgba(16, 16, 17, .96);
+  box-shadow: 0 12px 38px rgba(0, 0, 0, .4);
+  font-size: .83rem;
+  font-weight: 750;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -8px);
+  transition: opacity .16s ease, transform .16s ease
+}
+
+.study-navigation-status.active {
+  opacity: 1;
+  transform: translate(-50%, 0)
+}
+
+.study-navigation-spinner {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  border: 2px solid rgba(255, 255, 255, .2);
+  border-top-color: var(--ts-yellow);
+  border-radius: 50%;
+  animation: studySpin .7s linear infinite
+}
+
+.study-page-enter {
+  animation: studyContentEnter .28s cubic-bezier(.2, .75, .25, 1) both
+}
+
+@keyframes studyProgress {
+  from { transform: translateX(-110%) }
+  to { transform: translateX(340%) }
+}
+
+@keyframes studySpin {
+  to { transform: rotate(360deg) }
+}
+
+@keyframes studyContentEnter {
+  from { opacity: 0; transform: translateY(10px) }
+  to { opacity: 1; transform: translateY(0) }
+}
+
 .selection-card {
   position: relative;
   width: 100%;

@@ -10,7 +10,7 @@ The project also has a protected admin workspace, making it possible to manage t
 
 ## Curriculum browser
 
-The study browser starts with year cards, then shows that year's two semesters, followed by grouped subject cards. Semesters 1 and 2 show Group A and Group B separately; later semesters organize subjects into core, elective, lab, and project groups. Selecting a subject shows all its videos together, ordered by unit, instead of requiring a separate unit selection. Selecting a year, semester, or subject updates the browser without a full-page reload, while browser Back/Forward and direct links continue to work. Subjects without published lectures show “Content coming soon.” These are curriculum placeholders only and do not create fake video records or links; published video counts continue to come from MongoDB.
+The study browser starts with year cards, then shows that year's two semesters, followed by grouped subject cards. Semesters 1 and 2 show Group A and Group B separately; later semesters organize subjects into core, elective, lab, and project groups. Selecting a subject shows all its videos together, ordered by unit, instead of requiring a separate unit selection. Selecting a year, semester, or subject updates the browser without a full-page reload, shows immediate loading feedback, and can prefetch hovered or keyboard-focused cards. Browser Back/Forward and direct links continue to work. Subjects without published lectures show “Content coming soon.” These are curriculum placeholders only and do not create fake video records or links; published video counts continue to come from MongoDB.
 
 ## How it helps students
 
@@ -52,8 +52,11 @@ The Flask app runs on Vercel as a Python function. Before deploying:
 3. In **Vercel → Project Settings → Environment Variables**, set:
    - `MONGO_URI` — the MongoDB connection string for the database.
    - `SECRET_KEY` — a long, random value used to sign session cookies. Generate one locally with `python -c "import secrets; print(secrets.token_urlsafe(32))"`.
-4. Optionally set `DB_NAME` (defaults to `tsukomi_studyhub`), `REQUIRED_WATCH_SECONDS` (defaults to `40`), and `SESSION_COOKIE_SECURE` (defaults to enabled on Vercel).
-5. Redeploy after adding or changing environment variables.
+4. Set `ADMIN_USERNAME` to your chosen admin username and `ADMIN_PASSWORD_HASH` to a Werkzeug password hash. Generate the hash locally; the command prompts for the password without echoing it:
+   `python -c "from getpass import getpass; from werkzeug.security import generate_password_hash; print(generate_password_hash(getpass('New admin password: ')))"`
+   Add the same variables to your local `.env` file for local development. Do not share or commit the password or its hash.
+5. Optionally set `DB_NAME` (defaults to `tsukomi_studyhub`), `REQUIRED_WATCH_SECONDS` (defaults to `40`), and `SESSION_COOKIE_SECURE` (defaults to enabled on Vercel).
+6. Redeploy after adding or changing Vercel environment variables. Open `/admin` to reach the protected admin login.
 
 Do not commit `.env` or put production secrets in the repository. On the first successful connection, the app creates its MongoDB indexes and imports the bundled initial video records if the videos collection is empty.
 
