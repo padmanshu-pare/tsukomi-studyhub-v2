@@ -4,6 +4,28 @@
 
 {% block content %}
 
+{% macro video_card(video) %}
+<article class="video-card-public">
+  <a class="thumb" href="{{ url_for('watch', slug=video.slug) }}" aria-label="Watch {{ video.title }}">
+    <img src="https://img.youtube.com/vi/{{ video.youtube_id }}/hqdefault.jpg" alt="{{ video.title }} thumbnail" loading="lazy">
+    <span class="play-badge">▶</span>
+  </a>
+  <div class="video-card-body">
+    <div class="meta-row">
+      {% if video.semester %}<span class="pill">{{ video.semester }}</span>{% endif %}
+      {% if video.subject %}<span class="meta-subject">{{ video.subject }}</span>{% endif %}
+    </div>
+    <div class="meta-row">
+      {% if video.unit %}<span class="pill">{{ video.unit }}</span>{% endif %}
+      {% if video.year %}<span class="meta-subject">{{ video.year }}</span>{% endif %}
+    </div>
+    <h3>{{ video.title }}</h3>
+    <p>{{ video.description or "Exam-focused lecture with notes available after the required watch time." }}</p>
+    <a class="watch-link" href="{{ url_for('watch', slug=video.slug) }}">Watch &amp; Unlock Notes <span>→</span></a>
+  </div>
+</article>
+{% endmacro %}
+
 <section class="hero hero-home">
   <div class="hero-copy">
     <p class="eyebrow hero-kicker"><span aria-hidden="true"></span> RGPV · B.Tech · Exam Preparation</p>
@@ -215,6 +237,23 @@
   {% endif %}
 </section>
 
+{% if recent_videos %}
+<section class="recent-lectures" aria-labelledby="recent-lecture-heading">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">FRESH FROM THE LIBRARY</p>
+      <h2 id="recent-lecture-heading">Recently added</h2>
+    </div>
+    <span class="result-count">Latest {{ recent_videos|length }} videos</span>
+  </div>
+  <div class="grid video-grid">
+    {% for video in recent_videos %}
+    {{ video_card(video) }}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 {% if query or (selected_subject and total_videos) %}
 <section class="lecture-results" id="lectures" aria-labelledby="lecture-heading">
   <div class="section-heading">
@@ -239,25 +278,7 @@
 
   <div class="grid video-grid">
     {% for video in videos %}
-    <article class="video-card-public">
-      <a class="thumb" href="{{ url_for('watch', slug=video.slug) }}" aria-label="Watch {{ video.title }}">
-        <img src="https://img.youtube.com/vi/{{ video.youtube_id }}/hqdefault.jpg" alt="{{ video.title }} thumbnail" loading="lazy">
-        <span class="play-badge">▶</span>
-      </a>
-      <div class="video-card-body">
-        <div class="meta-row">
-          {% if video.semester %}<span class="pill">{{ video.semester }}</span>{% endif %}
-          {% if video.subject %}<span class="meta-subject">{{ video.subject }}</span>{% endif %}
-        </div>
-        <div class="meta-row">
-          {% if video.unit %}<span class="pill">{{ video.unit }}</span>{% endif %}
-          {% if video.year %}<span class="meta-subject">{{ video.year }}</span>{% endif %}
-        </div>
-        <h3>{{ video.title }}</h3>
-        <p>{{ video.description or "Exam-focused lecture with notes available after the required watch time." }}</p>
-        <a class="watch-link" href="{{ url_for('watch', slug=video.slug) }}">Watch &amp; Unlock Notes <span>→</span></a>
-      </div>
-    </article>
+    {{ video_card(video) }}
     {% else %}
     <div class="empty-state panel">
       <div class="empty-icon">⌕</div>

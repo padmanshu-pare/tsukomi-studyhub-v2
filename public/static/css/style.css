@@ -1021,6 +1021,10 @@ body.study-navigation-loading #lectures {
 }
 
 /* LECTURES */
+.recent-lectures {
+  margin: 0 0 58px
+}
+
 .section-heading {
   display: flex;
   align-items: flex-end;

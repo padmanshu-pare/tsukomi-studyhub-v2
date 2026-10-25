@@ -578,9 +578,36 @@ def home():
         )
     else:
         videos = []
+    recent_videos = []
+    if not any((
+        query,
+        selected_subject,
+        selected_year,
+        selected_academic_year,
+        selected_semester,
+        selected_unit,
+    )):
+        recent_videos = list(
+            db.videos.find(
+                {"published": True},
+                {
+                    "title": 1,
+                    "slug": 1,
+                    "youtube_id": 1,
+                    "semester": 1,
+                    "subject": 1,
+                    "unit": 1,
+                    "year": 1,
+                    "description": 1,
+                },
+            )
+            .sort([("created_at", -1), ("_id", -1)])
+            .limit(8)
+        )
     return render_template(
         "index.html",
         videos=videos,
+        recent_videos=recent_videos,
         query=query,
         selected_subject=selected_subject,
         selected_year=selected_year,
