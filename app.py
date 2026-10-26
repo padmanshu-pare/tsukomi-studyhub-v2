@@ -393,6 +393,94 @@ CURRICULUM = {
     ],
 }
 
+ADMIN_VIDEO_CURRICULUM = {
+    "1": {
+        "1": [
+            "Engineering Chemistry",
+            "Mathematics-I",
+            "English for Communication",
+            "Basic Electrical & Electronics Engineering",
+            "Engineering Graphics",
+            "Manufacturing Practices",
+            "Engineering Physics",
+            "Mathematics-II",
+            "Basic Mechanical Engineering",
+            "Basic Civil Engineering & Mechanics",
+            "Basic Computer Engineering",
+            "Language Lab & Seminars",
+        ],
+        "2": [
+            "Engineering Chemistry",
+            "Mathematics-I",
+            "English for Communication",
+            "Basic Electrical & Electronics Engineering",
+            "Engineering Graphics",
+            "Manufacturing Practices",
+            "Engineering Physics",
+            "Mathematics-II",
+            "Basic Mechanical Engineering",
+            "Basic Civil Engineering & Mechanics",
+            "Basic Computer Engineering",
+            "Language Lab & Seminars",
+        ],
+    },
+    "2": {
+        "3": [
+            "Energy & Environmental Engineering",
+            "Discrete Structure (Discrete Mathematics)",
+            "Data Structure",
+            "Digital Systems",
+            "Object Oriented Programming & Methodology",
+            "Computer Workshop",
+        ],
+        "4": [
+            "Mathematics-III",
+            "Analysis & Design of Algorithm (ADA)",
+            "Software Engineering",
+            "Computer Organization & Architecture (COA)",
+            "Operating Systems",
+            "Programming Practices (Lab)",
+            "Cyber Security",
+        ],
+    },
+    "3": {
+        "5": [
+            "Theory of Computation (TOC)",
+            "Database Management Systems (DBMS)",
+            "Departmental Elective (e.g., Data Analytics, Pattern Recognition, Cyber Security)",
+            "Open Elective (e.g., Internet and Web Technology, Introduction to DBMS)",
+            "Linux Lab",
+            "Python Lab",
+            "Minor Project-I",
+        ],
+        "6": [
+            "Machine Learning",
+            "Computer Networks",
+            "Departmental Elective (e.g., Advanced Computer Architecture, Compiler Design, Computer Graphics)",
+            "Open Elective (e.g., Knowledge Management, Project Management)",
+            "Data Analytics Lab",
+            "Skill Development Lab",
+            "Minor Project-II",
+        ],
+    },
+    "4": {
+        "7": [
+            "Software Architectures",
+            "Departmental Elective (e.g., Computational Intelligence, Cloud Computing, Big Data)",
+            "Open Elective (e.g., Cryptography & Information Security, Data Mining)",
+            "Departmental Elective Lab",
+            "Major Project-I",
+            "Industrial Training / Internship Evaluation",
+        ],
+        "8": [
+            "Internet of Things (IoT)",
+            "Departmental Elective (e.g., Blockchain Technologies, High Performance Computing)",
+            "Open Elective / Managing Innovation & Entrepreneurship",
+            "Major Project-II",
+        ],
+    },
+}
+
 
 @app.route("/")
 def home():
@@ -1019,6 +1107,7 @@ def admin_dashboard():
         drafts=drafts,
         disabled=disabled,
         required_watch_seconds=REQUIRED_WATCH_SECONDS,
+        admin_curriculum=ADMIN_VIDEO_CURRICULUM,
     )
 
 
@@ -1275,6 +1364,7 @@ def edit_video(video_id):
         "edit_video.html",
         video=video,
         content_issues=video_content_issues(video, video["_id"]),
+        admin_curriculum=ADMIN_VIDEO_CURRICULUM,
     )
 
 
