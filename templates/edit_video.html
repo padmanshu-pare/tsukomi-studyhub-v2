@@ -756,17 +756,14 @@
 
                                 <div class="field">
 
-                                    <label>
+                                    <label for="edit-subject">
                                         Subject
                                     </label>
 
-                                    <select name="subject" id="edit-subject">
-
-                                        <option value="">
-                                            Select Subject
-                                        </option>
-
-                                    </select>
+                                    <input type="text" name="subject" id="edit-subject"
+                                        list="edit-subject-options" value="{{ video.subject or '' }}"
+                                        placeholder="Choose or type any subject" autocomplete="off">
+                                    <datalist id="edit-subject-options"></datalist>
 
                                 </div>
 
@@ -1085,6 +1082,7 @@
         const yearSelect = document.getElementById("edit-year");
         const semesterSelect = document.getElementById("edit-semester");
         const subjectSelect = document.getElementById("edit-subject");
+        const subjectOptions = document.getElementById("edit-subject-options");
         const unitSelect = document.getElementById("edit-unit");
 
         function getSemesterLabel(number) {
@@ -1101,8 +1099,7 @@
             semesterSelect.innerHTML =
                 '<option value="">Select Semester</option>';
 
-            subjectSelect.innerHTML =
-                '<option value="">Select Subject</option>';
+            subjectOptions.replaceChildren();
 
             const yearData = curriculum[yearSelect.value];
 
@@ -1125,49 +1122,29 @@
         }
 
         function loadSubjects(selectedSubject = "") {
-            subjectSelect.innerHTML =
-                '<option value="">Select Subject</option>';
+            subjectOptions.replaceChildren();
 
             const yearData = curriculum[yearSelect.value];
-
-            if (!yearData) {
-                return;
+            const subjects = new Set(yearData?.[semesterSelect.value] || []);
+            if (selectedSubject) {
+                subjects.add(selectedSubject);
             }
 
-            const subjects = yearData[semesterSelect.value];
-
-            if (!subjects) {
-                return;
-            }
-
-            subjects.forEach((subject) => {
+            Array.from(subjects).sort((a, b) => a.localeCompare(b)).forEach((subject) => {
                 const option = document.createElement("option");
-
                 option.value = subject;
-                option.textContent = subject;
-
-                if (subject === selectedSubject) {
-                    option.selected = true;
-                }
-
-                subjectSelect.appendChild(option);
+                subjectOptions.appendChild(option);
             });
-
-            if (selectedSubject && !subjects.includes(selectedSubject)) {
-                const currentOption = document.createElement("option");
-                currentOption.value = selectedSubject;
-                currentOption.textContent = selectedSubject;
-                currentOption.selected = true;
-                subjectSelect.appendChild(currentOption);
-            }
         }
 
         yearSelect.addEventListener("change", () => {
             loadSemesters();
+            subjectSelect.value = "";
             loadSubjects();
         });
 
         semesterSelect.addEventListener("change", () => {
+            subjectSelect.value = "";
             loadSubjects();
         });
 

@@ -1129,9 +1129,9 @@
                             </div>
                             <div class="library-create-field">
                                 <label for="create-subject">Subject</label>
-                                <select name="subject" id="create-subject">
-                                    <option value="">Select subject</option>
-                                </select>
+                                <input name="subject" id="create-subject" list="create-subject-options"
+                                    placeholder="Choose or type any subject">
+                                <datalist id="create-subject-options"></datalist>
                             </div>
                             <div class="library-create-field">
                                 <label for="create-unit">Unit</label>
@@ -1756,11 +1756,13 @@
             const createYear = document.getElementById("create-year");
             const createSemester = document.getElementById("create-semester");
             const createSubject = document.getElementById("create-subject");
+            const createSubjectOptions = document.getElementById("create-subject-options");
             const curriculum = {{ admin_curriculum|tojson }};
 
             function populateCreateSemesters() {
                 createSemester.replaceChildren(new Option("Select semester", ""));
-                createSubject.replaceChildren(new Option("Select subject", ""));
+                createSubject.value = "";
+                createSubjectOptions.replaceChildren();
 
                 Object.keys(curriculum[createYear.value] || {})
                     .sort((a, b) => Number(a) - Number(b))
@@ -1774,10 +1776,27 @@
             }
 
             function populateCreateSubjects() {
-                createSubject.replaceChildren(new Option("Select subject", ""));
-                (curriculum[createYear.value]?.[createSemester.value] || [])
+                const subjects = new Set(
+                    curriculum[createYear.value]?.[createSemester.value] || []
+                );
+
+                rows.forEach(function (row) {
+                    if (
+                        row.dataset.year === createYear.value &&
+                        row.dataset.semester === createSemester.value &&
+                        row.dataset.subject
+                    ) {
+                        subjects.add(row.dataset.subject);
+                    }
+                });
+
+                createSubjectOptions.replaceChildren();
+                Array.from(subjects)
+                    .sort((a, b) => a.localeCompare(b))
                     .forEach(function (subject) {
-                        addOption(createSubject, subject, subject);
+                        const option = document.createElement("option");
+                        option.value = subject;
+                        createSubjectOptions.appendChild(option);
                     });
             }
 
@@ -1955,6 +1974,19 @@
 
                 }
 
+                rows.forEach(function (row) {
+                    const rowYear = row.dataset.year || "";
+                    const rowSemester = row.dataset.semester || "";
+                    const rowSubject = (row.dataset.subject || "").trim();
+
+                    if (
+                        rowSubject &&
+                        (!selectedYear || rowYear === selectedYear) &&
+                        (!selectedSemester || rowSemester === selectedSemester)
+                    ) {
+                        subjects.add(rowSubject);
+                    }
+                });
 
                 Array.from(subjects)
                     .sort(
