@@ -164,6 +164,35 @@ def slugify(value):
     return value
 
 
+def _infer_youtube_course_details(title):
+    title_lower = title.lower()
+    if re.search(r"\b(?:coa|computer organization)\b", title_lower):
+        subject = "Computer Organization & Architecture"
+    elif re.search(r"\b(?:operating systems?|\bos(?:\s+unit)?)\b", title_lower):
+        subject = "Operating Systems"
+    elif re.search(r"\bsoftware engineering\b", title_lower):
+        subject = "Software Engineering"
+    else:
+        subject = ""
+
+    year_match = re.search(
+        r"\b(?:(?P<ordinal>[1-4])(?:st|nd|rd|th)\s+year|year\s+(?P<number>[1-4]))\b",
+        title_lower,
+    )
+    semester_match = re.search(
+        r"\b(?:(?P<ordinal>[1-8])(?:st|nd|rd|th)\s+sem(?:ester)?|"
+        r"sem(?:ester)?\s+(?P<number>[1-8]))\b",
+        title_lower,
+    )
+
+    year = (year_match.group("ordinal") or year_match.group("number")) if year_match else ""
+    semester = (
+        (semester_match.group("ordinal") or semester_match.group("number"))
+        if semester_match else ""
+    )
+    return subject, year, semester
+
+
 def video_content_issues(video, exclude_id=None):
     """Return publishing issues that need admin attention for one video."""
     issues = []
@@ -1524,16 +1553,9 @@ def sync_youtube():
                 drive_links = re.findall(r'(https?://(?:drive|docs)\.google\.com/[^\s\n\)\"\'<>]+)', desc)
                 notes_link = drive_links[0] if drive_links else ""
 
-                title_lower = title.lower()
-                if 'coa' in title_lower or 'computer organization' in title_lower:
-                    subject = "Computer Organization & Architecture"
-                elif 'operating system' in title_lower or 'os ' in title_lower or 'os unit' in title_lower:
-                    subject = "Operating Systems"
-                elif 'software engineering' in title_lower:
-                    subject = "Software Engineering"
-                else:
-                    subject = "Engineering"
+                subject, year, semester = _infer_youtube_course_details(title)
 
+                title_lower = title.lower()
                 unit = "All Units"
                 unit_match = re.search(r'unit\s*([0-9])', title_lower)
                 if unit_match:
@@ -1554,11 +1576,14 @@ def sync_youtube():
                     synced_video = {
                         "title": title,
                         "slug": slug,
-                        "year": "2nd Year",
-                        "semester": "4th Semester",
+                        "year": year,
+                        "semester": semester,
                         "subject": subject,
                         "unit": unit,
-                        "description": desc or f"Study lecture and notes for {subject} - {unit}.",
+                        "description": desc or (
+                            f"Study lecture and notes for {subject} - {unit}."
+                            if subject else f"Study lecture and notes - {unit}."
+                        ),
                         "youtube_url": f"https://www.youtube.com/watch?v={vid_id}",
                         "youtube_id": vid_id,
                         "notes_url": notes_link,
@@ -1567,29 +1592,27 @@ def sync_youtube():
                         "created_at": now(),
                         "updated_at": now(),
                     }
-                    issues = video_content_issues(synced_video)
-                    if not issues:
-                        synced_video["status"] = "published"
-                        synced_video["published"] = True
                     db.videos.insert_one(synced_video)
                     added_count += 1
                 else:
+                    updates = {
+                        "title": title,
+                        "unit": unit,
+                        "description": desc or existing.get("description", ""),
+                        "notes_url": notes_link if notes_link else existing.get("notes_url", ""),
+                        "updated_at": now(),
+                    }
+                    if subject:
+                        updates["subject"] = subject
                     db.videos.update_one(
                         {"_id": existing["_id"]},
-                        {"$set": {
-                            "title": title,
-                            "subject": subject,
-                            "unit": unit,
-                            "description": desc or existing.get("description", ""),
-                            "notes_url": notes_link if notes_link else existing.get("notes_url", ""),
-                            "updated_at": now(),
-                        }}
+                        {"$set": updates}
                     )
                     updated_count += 1
 
         flash(
             f"YouTube Sync Complete: {added_count} new videos added, "
-            f"{updated_count} updated. New videos with content issues were saved as drafts.",
+            f"{updated_count} updated. New videos were saved as drafts for course-detail review.",
             "success",
         )
     except Exception as exc:
