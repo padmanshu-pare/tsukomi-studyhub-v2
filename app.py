@@ -1083,9 +1083,6 @@ def admin_dashboard():
     require_db()
 
     active_filter = {"archived_at": {"$exists": False}}
-    videos = list(db.videos.find(active_filter).sort("created_at", -1))
-    for video in videos:
-        video["content_issues"] = video_content_issues(video, video["_id"])
     total_videos = db.videos.count_documents(active_filter)
     published = db.videos.count_documents({**active_filter, "published": True})
     drafts = db.videos.count_documents({
@@ -1093,21 +1090,12 @@ def admin_dashboard():
         "published": False,
         "status": "draft",
     })
-    disabled = db.videos.count_documents({
-        **active_filter,
-        "published": False,
-        "status": {"$ne": "draft"},
-    })
 
     return render_template(
         "admin.html",
-        videos=videos,
         total_videos=total_videos,
         published=published,
         drafts=drafts,
-        disabled=disabled,
-        required_watch_seconds=REQUIRED_WATCH_SECONDS,
-        admin_curriculum=ADMIN_VIDEO_CURRICULUM,
     )
 
 
@@ -1144,7 +1132,7 @@ def admin_content():
         published=published,
         drafts=drafts,
         disabled=disabled,
-        required_watch_seconds=REQUIRED_WATCH_SECONDS,
+        admin_curriculum=ADMIN_VIDEO_CURRICULUM,
     )
 
 
@@ -1221,7 +1209,8 @@ def create_video():
     title = request.form.get("title", "").strip()
     year = request.form.get("year", "").strip()
     semester = request.form.get("semester", "").strip()
-    slug = slugify(request.form.get("slug", "").strip() or title)
+    requested_slug = request.form.get("slug", "").strip()
+    slug = slugify(requested_slug or title)
     subject = request.form.get("subject", "").strip()
     unit = request.form.get("unit", "").strip()
     description = request.form.get("description", "").strip()
@@ -1239,11 +1228,18 @@ def create_video():
             "Title and a valid YouTube URL are required.",
             "error",
         )
-        return redirect(url_for("admin_dashboard"))
+        return redirect(url_for("admin_content"))
 
-    if db.videos.find_one({"slug": slug}):
+    if requested_slug and db.videos.find_one({"slug": slug}, {"_id": 1}):
         flash("That slug already exists. Choose another.", "error")
-        return redirect(url_for("admin_dashboard"))
+        return redirect(url_for("admin_content"))
+
+    if not requested_slug:
+        base_slug = slug
+        suffix = 2
+        while db.videos.find_one({"slug": slug}, {"_id": 1}):
+            slug = f"{base_slug}-{suffix}"
+            suffix += 1
 
     video = {
         "title": title,
@@ -1266,7 +1262,7 @@ def create_video():
         issues = video_content_issues(video)
         if issues:
             flash("Cannot publish yet: " + "; ".join(issues) + ".", "error")
-            return redirect(url_for("admin_dashboard"))
+            return redirect(url_for("admin_content"))
 
     db.videos.insert_one(video)
 
@@ -1275,7 +1271,7 @@ def create_video():
     else:
         flash("Video published successfully.", "success")
 
-    return redirect(url_for("admin_dashboard"))
+    return redirect(url_for("admin_content"))
 
 
 @app.route("/admin/videos/<video_id>/edit", methods=["GET", "POST"])
@@ -1669,24 +1665,6 @@ def admin_analytics():
 
     lecture_stats = list(events.aggregate(lecture_pipeline))
 
-    return render_template(
-        "admin_analytics.html",
-        total_views=total_views,
-        unique_learners=unique_learners,
-        total_watch_minutes=total_watch_minutes,
-        notes_downloads=notes_downloads,
-        completion_rate=completion_rate,
-        subject_stats=subject_stats,
-        lecture_stats=lecture_stats,
-    )
-
-
-@app.route("/admin/downloads")
-@admin_required
-def admin_downloads():
-    require_db()
-
-    events = db.analytics_events
     grouped_downloads = list(events.aggregate([
         {"$match": {"event": "notes_download"}},
         {"$group": {
@@ -1709,7 +1687,6 @@ def admin_downloads():
         video_id = str(video["_id"])
         event_row = counts_by_video.pop(video_id, {})
         downloads_by_video.append({
-            "video_id": video_id,
             "title": video.get("title") or "Untitled lecture",
             "subject": video.get("subject") or "",
             "unit": video.get("unit") or "",
@@ -1717,9 +1694,8 @@ def admin_downloads():
             "archived": "archived_at" in video,
         })
 
-    for video_id, event_row in counts_by_video.items():
+    for event_row in counts_by_video.values():
         downloads_by_video.append({
-            "video_id": video_id,
             "title": event_row.get("title") or "Removed video",
             "subject": "",
             "unit": "",
@@ -1732,10 +1708,22 @@ def admin_downloads():
     )
 
     return render_template(
-        "admin_downloads.html",
+        "admin_analytics.html",
+        total_views=total_views,
+        unique_learners=unique_learners,
+        total_watch_minutes=total_watch_minutes,
+        notes_downloads=notes_downloads,
+        completion_rate=completion_rate,
+        subject_stats=subject_stats,
+        lecture_stats=lecture_stats,
         downloads_by_video=downloads_by_video,
-        total_downloads=events.count_documents({"event": "notes_download"}),
     )
+
+
+@app.route("/admin/downloads")
+@admin_required
+def admin_downloads():
+    return redirect(url_for("admin_analytics"))
 
 
 @app.errorhandler(503)

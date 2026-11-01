@@ -103,65 +103,174 @@
                 0 14px 35px rgba(255, 57, 125, 0.25);
         }
 
-
-        /* =========================================================
-           STAT STRIP
-           ========================================================= */
-
-        .library-stats {
-            display: grid;
-
-            grid-template-columns:
-                repeat(4, minmax(0, 1fr));
-
-            gap: 12px;
-
-            margin-bottom: 20px;
+        .library-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .library-stat {
-            padding: 17px 18px;
+        .library-more-actions {
+            position: relative;
+        }
 
+        .library-more-actions summary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0 15px;
             border: 1px solid var(--admin-border);
-            border-radius: 12px;
-
-            background:
-                linear-gradient(145deg,
-                    var(--admin-surface),
-                    var(--admin-surface-2));
-        }
-
-        .library-stat-label {
-            color: var(--admin-muted);
-
-            font-size: 10px;
-            font-weight: 700;
-
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
-
-        .library-stat-value {
-            margin-top: 6px;
-
+            border-radius: 10px;
             color: var(--admin-text);
-
-            font-size: 24px;
-            font-weight: 850;
-
-            line-height: 1;
+            background: var(--admin-surface);
+            font-size: 12px;
+            font-weight: 800;
+            list-style: none;
+            cursor: pointer;
         }
 
-        .library-stat-value.published {
-            color: var(--admin-green);
+        .library-more-actions summary::-webkit-details-marker {
+            display: none;
         }
 
-        .library-stat-value.draft {
-            color: var(--admin-yellow);
+        .library-more-menu {
+            position: absolute;
+            z-index: 5;
+            top: calc(100% + 7px);
+            right: 0;
+            display: grid;
+            min-width: 180px;
+            gap: 4px;
+            padding: 7px;
+            border: 1px solid var(--admin-border);
+            border-radius: 10px;
+            background: var(--admin-surface);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .28);
         }
 
-        .library-stat-value.disabled {
-            color: var(--admin-red);
+        .library-more-menu a,
+        .library-more-menu button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            border: 0;
+            border-radius: 7px;
+            background: transparent;
+            color: var(--admin-text);
+            font: inherit;
+            font-size: 12px;
+            text-align: left;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .library-more-menu a:hover,
+        .library-more-menu button:hover {
+            background: var(--admin-surface-2);
+        }
+
+        .library-create-panel {
+            margin-bottom: 20px;
+            padding: 22px;
+            border: 1px solid var(--admin-border);
+            border-radius: 14px;
+            background: var(--admin-surface);
+        }
+
+        .library-create-panel h2 {
+            margin: 0;
+            color: var(--admin-text);
+            font-size: 18px;
+        }
+
+        .library-create-help {
+            margin: 6px 0 18px;
+            color: var(--admin-muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .library-create-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .library-create-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .library-create-field label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--admin-muted);
+            font-size: 11px;
+            font-weight: 750;
+        }
+
+        .library-create-field input,
+        .library-create-field select,
+        .library-create-field textarea {
+            width: 100%;
+            min-height: 42px;
+            padding: 10px 12px;
+            border: 1px solid var(--admin-border);
+            border-radius: 8px;
+            background: var(--admin-surface-2);
+            color: var(--admin-text);
+            font: inherit;
+            font-size: 12px;
+        }
+
+        .library-create-field textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .library-create-field input:focus,
+        .library-create-field select:focus,
+        .library-create-field textarea:focus {
+            border-color: var(--admin-pink);
+            outline: 2px solid rgba(197, 60, 112, .12);
+        }
+
+        .library-create-optional {
+            margin-top: 16px;
+            border-top: 1px solid var(--admin-border);
+            padding-top: 14px;
+        }
+
+        .library-create-optional summary {
+            color: var(--admin-text);
+            font-size: 12px;
+            font-weight: 750;
+            cursor: pointer;
+        }
+
+        .library-create-optional .library-create-grid {
+            margin-top: 14px;
+        }
+
+        .library-create-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 9px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 700px) {
+            .library-header-actions {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .library-create-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .library-create-field.full {
+                grid-column: auto;
+            }
         }
 
 
@@ -876,11 +985,6 @@
                 flex-direction: column;
             }
 
-            .library-stats {
-                grid-template-columns:
-                    repeat(2, minmax(0, 1fr));
-            }
-
             .library-filter-bar {
                 grid-template-columns: 1fr;
             }
@@ -974,14 +1078,18 @@
                     </div>
 
 
-                    <a href="{{ url_for('admin_dashboard') }}#publish" class="library-add-button">
-
-                        ＋ Add Video
-
-                    </a>
-                    <a href="{{ url_for('admin_trash') }}" class="library-add-button">
-                        View Trash
-                    </a>
+                    <div class="library-header-actions">
+                        <a href="#add-video" class="library-add-button">＋ Add video</a>
+                        <details class="library-more-actions">
+                            <summary>More</summary>
+                            <div class="library-more-menu">
+                                <form method="post" action="{{ url_for('sync_youtube') }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <button type="submit">Sync YouTube channel</button>
+                                </form>
+                            </div>
+                        </details>
+                    </div>
 
                 </header>
 
@@ -994,6 +1102,83 @@
                 {% endfor %}
                 {% endif %}
                 {% endwith %}
+
+                <section class="library-create-panel" id="add-video" aria-labelledby="add-video-heading">
+                    <h2 id="add-video-heading">Add a video</h2>
+                    <p class="library-create-help">
+                        Enter the title and YouTube link. Fill in the academic details, notes, and description before publishing.
+                        The page URL is generated from the title.
+                    </p>
+                    <form method="post" action="{{ url_for('create_video') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <div class="library-create-grid">
+                            <div class="library-create-field">
+                                <label for="create-year">Year</label>
+                                <select name="year" id="create-year">
+                                    <option value="">Select year</option>
+                                    {% for year in range(1, 5) %}
+                                    <option value="{{ year }}">{{ year }}{{ "st" if year == 1 else "nd" if year == 2 else "rd" if year == 3 else "th" }} Year</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="library-create-field">
+                                <label for="create-semester">Semester</label>
+                                <select name="semester" id="create-semester">
+                                    <option value="">Select semester</option>
+                                </select>
+                            </div>
+                            <div class="library-create-field">
+                                <label for="create-subject">Subject</label>
+                                <select name="subject" id="create-subject">
+                                    <option value="">Select subject</option>
+                                </select>
+                            </div>
+                            <div class="library-create-field">
+                                <label for="create-unit">Unit</label>
+                                <select name="unit" id="create-unit">
+                                    <option value="">Select unit</option>
+                                    {% for unit in range(1, 6) %}
+                                    <option value="{{ unit }}">Unit {{ unit }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="library-create-field full">
+                                <label for="create-title">Video title <span aria-hidden="true">*</span></label>
+                                <input id="create-title" name="title" required placeholder="e.g. COA Unit 1 — Introduction">
+                            </div>
+                            <div class="library-create-field full">
+                                <label for="create-youtube-url">YouTube URL <span aria-hidden="true">*</span></label>
+                                <input id="create-youtube-url" name="youtube_url" type="url" required
+                                    placeholder="https://youtu.be/XXXXXXXXXXX">
+                            </div>
+                            <div class="library-create-field">
+                                <label for="create-status">Publishing status</label>
+                                <select name="status" id="create-status">
+                                    <option value="published">Publish now</option>
+                                    <option value="draft">Save as draft</option>
+                                </select>
+                            </div>
+                        </div>
+                        <details class="library-create-optional">
+                            <summary>Notes and description — required to publish</summary>
+                            <div class="library-create-grid">
+                                <div class="library-create-field">
+                                    <label for="create-notes-url">Notes / PDF URL</label>
+                                    <input id="create-notes-url" name="notes_url" type="url"
+                                        placeholder="https://drive.google.com/...">
+                                </div>
+                                <div class="library-create-field full">
+                                    <label for="create-description">Description</label>
+                                    <textarea id="create-description" name="description"
+                                        placeholder="Add a short summary of this lecture"></textarea>
+                                </div>
+                            </div>
+                        </details>
+                        <div class="library-create-footer">
+                            <button type="submit" class="library-add-button">Add video</button>
+                        </div>
+                    </form>
+                </section>
 
 
                 <!-- =================================================
@@ -1015,62 +1200,6 @@
                 %}
 
                 {% set disabled_count = total - published_count - draft_count %}
-
-
-                <section class="library-stats">
-
-                    <div class="library-stat">
-
-                        <div class="library-stat-label">
-                            Total Videos
-                        </div>
-
-                        <div class="library-stat-value">
-                            {{ total }}
-                        </div>
-
-                    </div>
-
-
-                    <div class="library-stat">
-
-                        <div class="library-stat-label">
-                            Published
-                        </div>
-
-                        <div class="library-stat-value published">
-                            {{ published_count }}
-                        </div>
-
-                    </div>
-
-
-                    <div class="library-stat">
-
-                        <div class="library-stat-label">
-                            Drafts
-                        </div>
-
-                        <div class="library-stat-value draft">
-                            {{ draft_count }}
-                        </div>
-
-                    </div>
-
-
-                    <div class="library-stat">
-
-                        <div class="library-stat-label">
-                            Disabled
-                        </div>
-
-                        <div class="library-stat-value disabled">
-                            {{ disabled_count }}
-                        </div>
-
-                    </div>
-
-                </section>
 
 
                 <!-- =================================================
@@ -1600,90 +1729,6 @@
                CURRICULUM
                ========================================================= */
 
-            const curriculum = {
-
-                1: {
-                    1: [
-                        "Engineering Chemistry",
-                        "Basic Electrical & Electronics Engineering",
-                        "Mathematics-I",
-                        "Engineering Graphics",
-                        "English"
-                    ],
-
-                    2: [
-                        "Engineering Physics",
-                        "Mathematics-II",
-                        "Basic Mechanical Engineering",
-                        "Basic Civil Engineering & Engineering Mechanics",
-                        "Basic Computer Engineering",
-                        "Language Lab & Seminars"
-                    ]
-                },
-
-                2: {
-                    3: [
-                        "Subject 1",
-                        "Subject 2",
-                        "Subject 3",
-                        "Subject 4",
-                        "Subject 5",
-                        "Subject 6"
-                    ],
-
-                    4: [
-                        "Mathematics-III",
-                        "Analysis & Design of Algorithms",
-                        "Software Engineering",
-                        "Computer Organization & Architecture",
-                        "Operating Systems",
-                        "Programming Practices"
-                    ]
-                },
-
-                3: {
-                    5: [
-                        "Subject 1",
-                        "Subject 2",
-                        "Subject 3",
-                        "Subject 4",
-                        "Subject 5",
-                        "Subject 6"
-                    ],
-
-                    6: [
-                        "Subject 1",
-                        "Subject 2",
-                        "Subject 3",
-                        "Subject 4",
-                        "Subject 5",
-                        "Subject 6"
-                    ]
-                },
-
-                4: {
-                    7: [
-                        "Subject 1",
-                        "Subject 2",
-                        "Subject 3",
-                        "Subject 4",
-                        "Subject 5",
-                        "Subject 6"
-                    ],
-
-                    8: [
-                        "Subject 1",
-                        "Subject 2",
-                        "Subject 3",
-                        "Subject 4",
-                        "Subject 5",
-                        "Subject 6"
-                    ]
-                }
-
-            };
-
-
             /* =========================================================
                HELPER
                ========================================================= */
@@ -1708,6 +1753,36 @@
                 return number + "th";
             }
 
+            const createYear = document.getElementById("create-year");
+            const createSemester = document.getElementById("create-semester");
+            const createSubject = document.getElementById("create-subject");
+            const curriculum = {{ admin_curriculum|tojson }};
+
+            function populateCreateSemesters() {
+                createSemester.replaceChildren(new Option("Select semester", ""));
+                createSubject.replaceChildren(new Option("Select subject", ""));
+
+                Object.keys(curriculum[createYear.value] || {})
+                    .sort((a, b) => Number(a) - Number(b))
+                    .forEach(function (semester) {
+                        addOption(
+                            createSemester,
+                            semester,
+                            `${getOrdinal(Number(semester))} Semester`
+                        );
+                    });
+            }
+
+            function populateCreateSubjects() {
+                createSubject.replaceChildren(new Option("Select subject", ""));
+                (curriculum[createYear.value]?.[createSemester.value] || [])
+                    .forEach(function (subject) {
+                        addOption(createSubject, subject, subject);
+                    });
+            }
+
+            createYear.addEventListener("change", populateCreateSemesters);
+            createSemester.addEventListener("change", populateCreateSubjects);
 
             /* =========================================================
                POPULATE YEARS

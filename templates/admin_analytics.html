@@ -101,7 +101,7 @@
             </div>
 
             <div class="stat-label">
-                See Notes Button Clicks
+                Notes Link Opens
             </div>
 
             <div class="stat-value">
@@ -112,6 +112,44 @@
 
     </section>
 
+    <section class="analytics-card downloads-report">
+        <div class="analytics-card-header">
+            <h2>Notes link opens by video</h2>
+        </div>
+        <p class="downloads-report-note">
+            Counts are recorded when StudyHub redirects a student to a notes link. It cannot confirm whether a download was completed on Google Drive or another provider.
+        </p>
+        <div class="downloads-report-table-wrap">
+            <table class="downloads-report-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Video</th>
+                        <th scope="col">Subject / Unit</th>
+                        <th scope="col">Link opens</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for video in downloads_by_video %}
+                    <tr>
+                        <td>
+                            <strong>{{ video.title }}</strong>
+                            {% if video.archived %}<span class="downloads-report-archived">Archived / removed</span>{% endif %}
+                        </td>
+                        <td>
+                            {{ video.subject or "—" }}
+                            {% if video.unit %}<div class="downloads-report-meta">Unit {{ video.unit }}</div>{% endif %}
+                        </td>
+                        <td><strong class="downloads-report-count">{{ video.downloads }}</strong></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td class="downloads-report-empty" colspan="3">No videos or notes activity found yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 
     <!-- =====================================================
          COMPLETION RATE
