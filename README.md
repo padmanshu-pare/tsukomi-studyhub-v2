@@ -55,8 +55,9 @@ The Flask app runs on Vercel as a Python function. Before deploying:
 4. Set `ADMIN_USERNAME` to your chosen admin username and `ADMIN_PASSWORD_HASH` to a Werkzeug password hash. Generate the hash locally; the command prompts for the password without echoing it:
    `python -c "from getpass import getpass; from werkzeug.security import generate_password_hash; print(generate_password_hash(getpass('New admin password: ')))"`
    Add the same variables to your local `.env` file for local development. Do not share or commit the password or its hash.
-5. Optionally set `DB_NAME` (defaults to `tsukomi_studyhub`), `REQUIRED_WATCH_SECONDS` (defaults to `40`), and `SESSION_COOKIE_SECURE` (defaults to enabled on Vercel).
-6. Redeploy after adding or changing Vercel environment variables. Open `/admin` to reach the protected admin login.
+5. Optionally set `DB_NAME` (defaults to `tsukomi_studyhub`), `REQUIRED_WATCH_SECONDS` (defaults to `40`), and `SESSION_COOKIE_SECURE` (defaults to enabled on Vercel). Login throttling uses MongoDB so its rolling attempt window is shared across instances; admin login is unavailable when shared MongoDB is unreachable.
+6. Set `TRUSTED_PROXY_HOPS` only when the app is reachable exclusively through a proxy that reliably sets or appends `X-Forwarded-For`. Use the number of trusted proxy hops (for example, `1` for one trusted proxy); it defaults to `0`, which ignores forwarded headers and uses the direct peer address. Never enable this for an app that is directly reachable from untrusted clients.
+7. Redeploy after adding or changing Vercel environment variables. Open `/admin` to reach the protected admin login.
 
 Do not commit `.env` or put production secrets in the repository. On successful MongoDB connections, the app ensures its indexes, imports the bundled initial video records if the videos collection is empty, and applies idempotent metadata migrations such as simplified video titles.
 

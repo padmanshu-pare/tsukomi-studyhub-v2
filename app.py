@@ -2,6 +2,7 @@ import os
 import re
 import uuid
 import hmac
+import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
 from functools import wraps
@@ -12,7 +13,9 @@ from flask import (
     Flask, abort, flash, jsonify, redirect, render_template,
     request, session, url_for, Response,
 )
-from pymongo import MongoClient
+from pymongo import MongoClient, ReturnDocument
+from pymongo.errors import DuplicateKeyError
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash
 
 load_dotenv()
@@ -31,6 +34,14 @@ app.config.update(
     ) == "1",
     PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),
 )
+TRUSTED_PROXY_HOPS = int(os.getenv("TRUSTED_PROXY_HOPS", "0"))
+if TRUSTED_PROXY_HOPS < 0:
+    raise RuntimeError("TRUSTED_PROXY_HOPS must be zero or a positive integer.")
+if TRUSTED_PROXY_HOPS:
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app,
+        x_for=TRUSTED_PROXY_HOPS,
+    )
 
 from migrations import ensure_mongodb_initialized
 
@@ -40,7 +51,6 @@ REQUIRED_WATCH_SECONDS = int(os.getenv("REQUIRED_WATCH_SECONDS", "40"))
 LOGIN_MAX_ATTEMPTS = 5
 LOGIN_WINDOW_SECONDS = 15 * 60
 MAX_WATCH_PROGRESS_INTERVAL_SECONDS = 2
-_login_attempts = {}
 
 
 def now():
@@ -48,20 +58,54 @@ def now():
 
 
 def _client_ip():
-    """Use proxy forwarding only when the deployment proxy has set it."""
-    forwarded_for = request.headers.get("X-Forwarded-For", "")
-    return forwarded_for.split(",")[0].strip() if forwarded_for else request.remote_addr
+    """Use forwarded addresses only when trusted proxy hops are configured."""
+    return request.remote_addr or "unknown"
 
 
-def _login_is_limited(ip_address):
-    cutoff = now().timestamp() - LOGIN_WINDOW_SECONDS
-    recent = [stamp for stamp in _login_attempts.get(ip_address, []) if stamp > cutoff]
-    _login_attempts[ip_address] = recent
-    return len(recent) >= LOGIN_MAX_ATTEMPTS
+def _reserve_login_attempt(ip_address):
+    """Atomically count a login attempt in shared storage before checking credentials."""
+    if not db_is_distributed:
+        raise RuntimeError("Shared MongoDB storage is required for login throttling.")
 
-
-def _record_failed_login(ip_address):
-    _login_attempts.setdefault(ip_address, []).append(now().timestamp())
+    current_time = now()
+    ip_digest = hashlib.sha256(ip_address.encode("utf-8")).hexdigest()
+    cutoff = current_time - timedelta(seconds=LOGIN_WINDOW_SECONDS)
+    update_pipeline = [{
+        "$set": {
+            "attempts": {
+                "$slice": [
+                    {
+                        "$concatArrays": [
+                            {
+                                "$filter": {
+                                    "input": {"$ifNull": ["$attempts", []]},
+                                    "as": "attempt",
+                                    "cond": {"$gt": ["$$attempt", cutoff]},
+                                }
+                            },
+                            [current_time],
+                        ]
+                    },
+                    -(LOGIN_MAX_ATTEMPTS + 1),
+                ]
+            },
+            "expires_at": current_time + timedelta(seconds=LOGIN_WINDOW_SECONDS),
+        }
+    }]
+    try:
+        result = db.login_attempts.find_one_and_update(
+            {"_id": ip_digest},
+            update_pipeline,
+            upsert=True,
+            return_document=ReturnDocument.AFTER,
+        )
+    except DuplicateKeyError:
+        result = db.login_attempts.find_one_and_update(
+            {"_id": ip_digest},
+            update_pipeline,
+            return_document=ReturnDocument.AFTER,
+        )
+    return len(result["attempts"]) > LOGIN_MAX_ATTEMPTS
 
 
 def _is_safe_local_url(target):
@@ -89,6 +133,7 @@ def protect_admin_posts():
 
 client = None
 db = None
+db_is_distributed = False
 
 if MONGO_URI:
     try:
@@ -98,8 +143,10 @@ if MONGO_URI:
         db = client[DB_NAME]
         print(f"[Database] Connected successfully to MongoDB ({DB_NAME}).")
         ensure_mongodb_initialized(db)
+        db_is_distributed = True
     except Exception as err:
         print(f"[Database] MongoDB remote connection error ({err}).")
+        db_is_distributed = False
         try:
             import mongomock
             print("[Database] Using local mongomock database instance.")
@@ -109,6 +156,13 @@ if MONGO_URI:
         except ImportError:
             client = None
             db = None
+
+if db_is_distributed:
+    db.login_attempts.create_index(
+        "expires_at",
+        expireAfterSeconds=0,
+        name="login_attempts_expiry",
+    )
 
 
 def require_db():
@@ -552,6 +606,7 @@ def home():
                 (selected_subject,),
             )
         }
+    subject_filters = filters.copy()
     if selected_unit:
         if selected_unit == "__uncategorized__":
             filters["$and"] = [{
@@ -716,7 +771,7 @@ def home():
             matching_videos = list(db.videos.find(filters).sort("created_at", -1))
             matching_videos.sort(key=_video_unit_sort_key)
             total_videos = len(matching_videos)
-            subject_video_count = total_videos
+            subject_video_count = db.videos.count_documents(subject_filters)
         else:
             total_videos = db.videos.count_documents(filters)
     page_size = max(12, total_videos) if selected_subject else 12
@@ -1074,11 +1129,16 @@ def _slug_for_video(video_id):
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
+        if not db_is_distributed:
+            abort(
+                503,
+                description="Shared MongoDB storage is required for secure login throttling.",
+            )
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
         ip_address = _client_ip()
 
-        if _login_is_limited(ip_address):
+        if _reserve_login_attempt(ip_address):
             flash("Too many login attempts. Please try again in 15 minutes.", "error")
             return render_template("admin_login.html"), 429
 
@@ -1100,11 +1160,9 @@ def admin_login():
             session["admin"] = True
             session.permanent = True
             session["csrf_token"] = secrets.token_urlsafe(32)
-            _login_attempts.pop(ip_address, None)
             target = request.args.get("next", "")
             return redirect(target if _is_safe_local_url(target) else url_for("admin_dashboard"))
 
-        _record_failed_login(ip_address)
         flash("Invalid credentials.", "error")
 
     return render_template("admin_login.html")
