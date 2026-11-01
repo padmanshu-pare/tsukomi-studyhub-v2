@@ -39,6 +39,7 @@ DB_NAME = os.getenv("DB_NAME", "tsukomi_studyhub")
 REQUIRED_WATCH_SECONDS = int(os.getenv("REQUIRED_WATCH_SECONDS", "40"))
 LOGIN_MAX_ATTEMPTS = 5
 LOGIN_WINDOW_SECONDS = 15 * 60
+MAX_WATCH_PROGRESS_INTERVAL_SECONDS = 2
 _login_attempts = {}
 
 
@@ -840,9 +841,12 @@ def watch_start(video_id):
     if not video:
         abort(404)
 
+    started_at = now()
     session["watch_video_id"] = str(video["_id"])
-    session["watch_started_at"] = now().isoformat()
+    session["watch_gate_version"] = 1
+    session["watch_started_at"] = started_at.isoformat()
     session["watch_seconds"] = 0
+    session["watch_last_progress_at"] = started_at.timestamp()
     session["analytics_last_progress"] = 0
     session["analytics_unlock_recorded"] = False
     session.modified = True
@@ -864,32 +868,36 @@ def watch_progress(video_id):
             "ok": False,
             "error": "Watch session not started.",
         }), 400
+    if (
+        session.get("watch_gate_version") != 1
+        or "watch_last_progress_at" not in session
+    ):
+        return jsonify({
+            "ok": False,
+            "error": "Watch session must be restarted.",
+        }), 400
 
-    data = request.get_json(silent=True) or {}
+    current_time = now().timestamp()
+    previous_time = float(session.get("watch_last_progress_at", current_time))
+    elapsed = max(0, current_time - previous_time)
+    credited_seconds = min(
+        elapsed,
+        MAX_WATCH_PROGRESS_INTERVAL_SECONDS,
+    )
+    watched_seconds = min(
+        float(session.get("watch_seconds", 0)) + credited_seconds,
+        float(REQUIRED_WATCH_SECONDS),
+    )
 
-    try:
-        client_seconds = float(data.get("watched_seconds", 0))
-    except (TypeError, ValueError):
-        client_seconds = 0
-
-    previous = float(session.get("watch_seconds", 0))
-
-    if data.get("video_ended"):
-        client_seconds = max(previous, float(REQUIRED_WATCH_SECONDS))
-    else:
-        if client_seconds < previous:
-            client_seconds = previous
-        # Prevent a large artificial jump from the browser.
-        client_seconds = min(client_seconds, previous + 3)
-
-    session["watch_seconds"] = client_seconds
+    session["watch_last_progress_at"] = current_time
+    session["watch_seconds"] = watched_seconds
     session.modified = True
 
     # Fetch the video only when we need to write an analytics event.
     last_recorded = float(session.get("analytics_last_progress", 0))
 
     # Store progress approximately every 5 seconds instead of every heartbeat.
-    if client_seconds >= last_recorded + 5:
+    if watched_seconds >= last_recorded + 5:
         try:
             video = db.videos.find_one({
                 "_id": ObjectId(video_id),
@@ -903,16 +911,16 @@ def watch_progress(video_id):
             record_analytics_event(
                 "watch_progress",
                 video,
-                client_seconds,
+                watched_seconds,
             )
-            session["analytics_last_progress"] = client_seconds
+            session["analytics_last_progress"] = watched_seconds
             session.modified = True
 
-    unlocked = client_seconds >= REQUIRED_WATCH_SECONDS
+    unlocked = watched_seconds >= REQUIRED_WATCH_SECONDS
 
     return jsonify({
         "ok": True,
-        "watched_seconds": client_seconds,
+        "watched_seconds": watched_seconds,
         "required_seconds": REQUIRED_WATCH_SECONDS,
         "unlocked": unlocked,
     })
@@ -927,14 +935,16 @@ def unlock(video_id):
             "ok": False,
             "error": "Invalid watch session.",
         }), 400
+    if (
+        session.get("watch_gate_version") != 1
+        or "watch_last_progress_at" not in session
+    ):
+        return jsonify({
+            "ok": False,
+            "error": "Watch session must be restarted.",
+        }), 400
 
-    data = request.get_json(silent=True) or {}
     watched = float(session.get("watch_seconds", 0))
-
-    if data.get("video_ended"):
-        watched = max(watched, float(REQUIRED_WATCH_SECONDS))
-        session["watch_seconds"] = watched
-        session.modified = True
 
     if watched < REQUIRED_WATCH_SECONDS:
         return jsonify({
